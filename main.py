@@ -1,10 +1,18 @@
 import asyncio
 import os
 import shutil
-from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips
+import argparse
+from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip
 import re
 from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet
-    
+from random import randrange
+from typing import Tuple
+from video_downloading.youtube import download_background
+
+def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
+    random_time = randrange(180, int(length_of_clip) - int(video_length))
+    return random_time, random_time + video_length
+
 def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     audio_clip = AudioFileClip(audio_path)
     image_clip = ImageClip(image_path)
@@ -38,9 +46,37 @@ async def main(link: str) -> None:
     for tweet_id in tweet_ids:
         video_clips.append(create_video_clip(f"{temp_dir}/{tweet_id}.mp3", f"{temp_dir}/{tweet_id}.png"))
     
-    final_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0)
-    final_clip.write_videofile(f"{output_dir}/{id}.mp4")
+    tweets_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0).set_position(
+        "center"
+    )
+    tweets_clip = tweets_clip.set_position("center")
+    background_filename = f"./assets/backgrounds/{download_background()}"
+    background_clip = VideoFileClip(background_filename)
+    start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
+    background_clip = background_clip.subclip(start_time, end_time)
+    background_clip = background_clip.without_audio()
+    background_clip = background_clip.resize(height=1920)
+    c = background_clip.w // 2
+    half_w = 1080 // 2
+    x1 = c - half_w
+    x2 = c + half_w
+    background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
+    screenshot_width = int((1080 * 90) // 100)
+    tweets_clip = tweets_clip.resize(width=screenshot_width)
+    final_video = CompositeVideoClip([background_clip, tweets_clip])
+    final_video.write_videofile(f"{output_dir}/{id}.mp4", fps=60, remove_temp=True)
 
     shutil.rmtree("temp")
-    
-asyncio.run(main("https://twitter.com/MyBetaMod/status/1641987054446735360?s=20"))
+
+# https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                    prog='TwitterVideoMakerBot',
+                    description='Generates a video from a thread of tweets')
+    parser.add_argument('tweet_link', nargs='?', type=str, help='Link of the tweet')
+    args = parser.parse_args()
+    if args.tweet_link is None:
+        link = input("Link of the tweet: ")
+    else:
+        link = args.tweet_link
+    asyncio.run(main(link))
