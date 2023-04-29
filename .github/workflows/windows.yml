@@ -1,0 +1,25 @@
+name: Windows
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements.txt
+
+    - name: Package app with PyInstaller
+      run: |
+        python3 -m nuitka --include-data-dir="static"="static" --include-data-dir="templates"="templates" --include-data-dir="data"="data" --onefile --windows-icon-from-ico=static/img/App_Icon.png --follow-imports app.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: TwitterVideoMakerBot
+        path: app.dist/

@@ -1,0 +1,25 @@
+name: macOS
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements.txt
+
+    - name: Package app with PyInstaller
+      run: |
+        python3 -m nuitka --include-data-dir="static"="static" --include-data-dir="templates"="templates" --include-data-dir="data"="data" --macos-create-app-bundle --macos-app-icon=static/img/App_Icon.png --follow-imports app.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: TwitterVideoMakerBot
+        path: app.dist/
