@@ -3,22 +3,22 @@
   <head>
     <title>Fudgify</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='img/App_Icon.png') }}">
-    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
+    <link rel= "stylesheet" type="text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
   </head>
   <body>
     <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
-    <form>
-      <label for="text">Tweet Link:</label>
-      <input type="text" id="text" name="text" size="50">
-      <button id="submit" type="button">Submit</button>
-    </form>
+    <div>
+      <input type="text" id="text" placeholder="Enter your tweet's link here" size="50">
+      <button id="submit" type="button" class="blue-button">Submit</button>
+    </div>
     <div id="progress-container" style="display:none">
+      <hr>
       <h2>Status:</h2>
-      <span>Stage: </span>
+      <span><b>Stage: </b></span>
       <span id="stage">Starting</span><br>
-      <span>Progress: </span>
-      <span id="progress-bar" style="width:0%">0%</span>
-      <button id="export" type="button" style="display:none" href="/video">Export video</button>
+      <span><b>Progress: </b></span>
+      <span id="progress-bar" style="width:0%">0%</span><br><br>
+      <button id="export" type="button" class="green-button" style="display:none" onclick="location.href='/video';">Export video</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
@@ -40,6 +40,8 @@
         stage.style.width = 'Starting';
         stage.innerText = 'Starting';
 
+        submitButton.disabled = true; 
+
         exportButton.style.display = 'none';
 
         // Show the progress container
@@ -52,6 +54,7 @@
       socket.on('done', function(data) {
         // Show the export button
         exportButton.style.display = 'block';
+        submitButton.disabled = false;
       });
 
       socket.on('stage', function(data) {
