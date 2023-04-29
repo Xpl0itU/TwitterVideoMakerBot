@@ -2,6 +2,7 @@ import asyncio
 import os
 import shutil
 import argparse
+import multiprocessing
 from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip
 import re
 from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet
@@ -18,7 +19,7 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     image_clip = ImageClip(image_path)
     image_clip = image_clip.set_audio(audio_clip)
     image_clip = image_clip.set_duration(audio_clip.duration)
-    return image_clip.set_fps(60)
+    return image_clip.set_fps(1)
 
 async def main(link: str) -> None:
     id = re.search("/status/(\d+)", link).group(1)
@@ -64,7 +65,7 @@ async def main(link: str) -> None:
     screenshot_width = int((1080 * 90) // 100)
     tweets_clip = tweets_clip.resize(width=screenshot_width)
     final_video = CompositeVideoClip([background_clip, tweets_clip])
-    final_video.write_videofile(f"{output_dir}/{id}.mp4", fps=60, remove_temp=True)
+    final_video.write_videofile(f"{output_dir}/{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count())
 
     shutil.rmtree("temp")
 
