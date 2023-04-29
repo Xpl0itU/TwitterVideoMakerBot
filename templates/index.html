@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fudgify</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='img/App_Icon.png') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
+  </head>
+  <body>
+    <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
+    <form>
+      <label for="text">Tweet Link:</label>
+      <input type="text" id="text" name="text" size="50">
+      <button id="submit" type="button">Submit</button>
+    </form>
+    <div id="progress-container" style="display:none">
+      <h2>Status:</h2>
+      <span>Stage: </span>
+      <span id="stage">Starting</span><br>
+      <span>Progress: </span>
+      <span id="progress-bar" style="width:0%">0%</span>
+      <button id="export" type="button" style="display:none" href="/video">Export video</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+      var submitButton = document.getElementById('submit');
+      var textInput = document.getElementById('text');
+      var progressContainer = document.getElementById('progress-container');
+      var stage = document.getElementById('stage');
+      var progressBar = document.getElementById('progress-bar');
+      var exportButton = document.getElementById('export');
+
+      submitButton.addEventListener('click', function() {
+        // Clear the progress bar
+        progressBar.style.width = '0%';
+        progressBar.innerText = '0%';
+
+        stage.style.width = 'Starting';
+        stage.innerText = 'Starting';
+
+        exportButton.style.display = 'none';
+
+        // Show the progress container
+        progressContainer.style.display = '';
+
+        // Send the text input to the server
+        socket.emit('submit', {text: textInput.value});
+      });
+
+      socket.on('done', function(data) {
+        // Show the export button
+        exportButton.style.display = 'block';
+      });
+
+      socket.on('stage', function(data) {
+        // Update the stage
+        stage.innerText = data.stage;
+      });
+
+      socket.on('progress', function(data) {
+        // Update the progress bar
+        progressBar.style.width = data.progress + '%';
+        progressBar.innerText = data.progress + '%';
+      });
+    </script>
+  </body>
+</html>

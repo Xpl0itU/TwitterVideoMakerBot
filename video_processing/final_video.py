@@ -10,6 +10,10 @@ from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
 
+import sys
+from flask_socketio import emit
+from video_processing.logger import MoviePyLogger
+
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     random_time = randrange(180, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
@@ -21,7 +25,7 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     image_clip = image_clip.set_duration(audio_clip.duration)
     return image_clip.set_fps(1)
 
-async def main(link: str) -> None:
+async def generate_video(link: str) -> None:
     id = re.search("/status/(\d+)", link).group(1)
     username = re.search("twitter.com/(.*?)/status", link).group(1)
     output_dir = f"results/{id}"
@@ -35,6 +39,7 @@ async def main(link: str) -> None:
     tweet_ids = list()
     tasks = list()
     port = 9222
+    emit('stage', {'stage': 'Screenshotting tweets and generating the voice'}, broadcast=True)
     for tweet in tweets_in_thread:
         tweet_ids.append(tweet.id)
         thread_item_link = f"https://twitter.com/{username}/status/{tweet.id}"
@@ -44,6 +49,7 @@ async def main(link: str) -> None:
     for task in asyncio.as_completed(tasks):
         await task
     
+    emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for tweet_id in tweet_ids:
         video_clips.append(create_video_clip(f"{temp_dir}/{tweet_id}.mp3", f"{temp_dir}/{tweet_id}.png"))
     
@@ -65,9 +71,22 @@ async def main(link: str) -> None:
     screenshot_width = int((1080 * 90) // 100)
     tweets_clip = tweets_clip.resize(width=screenshot_width)
     final_video = CompositeVideoClip([background_clip, tweets_clip])
-    final_video.write_videofile(f"{output_dir}/{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count())
 
+    logger = MoviePyLogger()
+    original_stderr = sys.stderr
+    sys.stderr.write = logger.custom_stdout_write
+
+    emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
+    
+    final_video.write_videofile(f"{output_dir}/{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast")
+    sys.stderr.write = original_stderr.write
     shutil.rmtree("temp")
+    emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
+    emit('done', {'done': None}, broadcast=True)
+
+def get_exported_video_path(link: str) -> str:
+    id = re.search("/status/(\d+)", link).group(1)
+    return f"results/{id}/{id}.mp4"
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
@@ -80,4 +99,4 @@ if __name__ == "__main__":
         link = input("Link of the tweet: ")
     else:
         link = args.tweet_link
-    asyncio.run(main(link))
+    asyncio.run(generate_video(link))

@@ -1,3 +1,5 @@
+Flask==2.3.1
+Flask-SocketIO==5.3.3
 tweet-capture==0.1.9
 tweety-ns==0.6.1
 tweetben==0.0.1
