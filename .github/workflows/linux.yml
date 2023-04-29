@@ -19,7 +19,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Package app with PyInstaller
+    - name: Package app with Nuitka
       run: |
         python -m nuitka --include-data-dir="static"="static" --include-data-dir="templates"="templates" --include-data-dir="data"="data" --onefile --follow-imports app.py
 
