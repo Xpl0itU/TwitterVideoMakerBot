@@ -11,7 +11,18 @@ jobs:
 
     steps:
       - name: Set separator
-        run: echo "::set-output name=separator::${{ if eq(matrix.os, 'windows-2019') }};${{ else }}:${{ endif }}"
+        run: |
+          if [ "$(uname)" == "Darwin" ]; then
+            echo "::set-output name=os::macOS"
+          elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+            echo "::set-output name=os::Linux"
+          elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+            echo "::set-output name=os::Windows"
+          elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
+            echo "::set-output name=os::Windows"
+          else
+            echo "::set-output name=os::Unknown"
+          fi
         id: set-separator
 
       - name: Check-out repository
@@ -56,7 +67,7 @@ jobs:
 
       - name: Build Executable
         run: |
-          pyinstaller -D -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --upx-dir=upx --noconfirm app.py
+          pyinstaller -D -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --upx-dir=upx --noconfirm app.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
