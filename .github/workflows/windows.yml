@@ -21,7 +21,7 @@ jobs:
 
     - name: Package app with Nuitka
       run: |
-        python3 -m nuitka --include-data-dir="static"="static" --include-data-dir="templates"="templates" --include-data-dir="data"="data" --onefile --windows-icon-from-ico=static/img/App_Icon.png --follow-imports app.py
+        python3 -m nuitka --include-data-dir="static"="static" --include-data-dir="templates"="templates" --include-data-dir="data"="data" --onefile --windows-icon-from-ico=static/img/App_Icon.png --low-memory --follow-imports app.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
