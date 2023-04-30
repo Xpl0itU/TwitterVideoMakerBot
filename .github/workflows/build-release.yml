@@ -26,10 +26,12 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
+          python -m textblob.download_corpora
+          python -m spacy download en_core_web_sm
 
       - name: Build Executable
         run: |
-          pyinstaller -F -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy -i static/img/App_Icon.png app.py
+          pyinstaller -D -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy -i static/img/App_Icon.png app.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
