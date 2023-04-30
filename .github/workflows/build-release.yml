@@ -7,6 +7,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Set separator
+        run: echo "::set-output name=separator::${{ if eq(matrix.os, 'windows-latest') }};{{ else }}:{{ endif }}"
+        id: set-separator
+
       - name: Check-out repository
         uses: actions/checkout@v3
 
@@ -24,21 +28,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build Executable
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          nuitka-version: main
-          script-name: app.py
-          onefile: true
-          windows-icon-from-ico: static/img/App_Icon.png
-          macos-create-app-bundle: true
-          include-data-dir: static=static, templates=templates, data=data
-          output-file: Fudgify
+        run: |
+          pyinstaller -F -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy -i static/img/App_Icon.png app.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }} Build
           path: |
-            build/*.exe
-            build/*.bin
-            build/*.app/**/*
+            dist/*

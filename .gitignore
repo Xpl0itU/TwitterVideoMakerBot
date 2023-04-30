@@ -4,3 +4,5 @@ temp/
 assets/
 app.build/
 app.dist/
+*.spec
+build/
