@@ -86,7 +86,7 @@ async def generate_video(link: str) -> None:
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
-    return f"results/{id}/Fugify-{id}.mp4"
+    return f"results/{id}/Fudgify-{id}.mp4"
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
