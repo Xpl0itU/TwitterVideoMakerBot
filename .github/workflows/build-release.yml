@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Set separator
-        run: echo "::set-output name=separator::${{ if eq(matrix.os, 'windows-2019') }};{{ else }}:{{ endif }}"
+        run: echo "::set-output name=separator::${{ if eq(matrix.os, 'windows-2019') }};${{ else }}:${{ endif }}"
         id: set-separator
 
       - name: Check-out repository
