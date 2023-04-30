@@ -22,6 +22,16 @@ jobs:
           cache: 'pip'
           cache-dependency-path: |
             **/requirements*.txt
+      - name: Create virtual environment
+        run: python -m venv env
+        
+      - name: Activate virtual environment
+        run: source env/bin/activate
+        if: runner.os != 'Windows'
+        
+      - name: Activate virtual environment
+        run: env\Scripts\activate.bat
+        if: runner.os == 'Windows'
 
       - name: Install Dependencies
         run: |
@@ -31,11 +41,11 @@ jobs:
 
       - name: Build Executable
         run: |
-          pyinstaller -D -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy -i static/img/App_Icon.png app.py
+          pyinstaller -D -n Fudgify --add-data "static${{ steps.set-separator.outputs.separator }}static" --add-data "templates${{ steps.set-separator.outputs.separator }}templates" --add-data "data${{ steps.set-separator.outputs.separator }}data" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --noconfirm app.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }} Build
           path: |
-            dist/*
+            dist/

@@ -5,10 +5,12 @@ import webbrowser
 import asyncio
 import os
 from video_processing.final_video import generate_video, get_exported_video_path
+from fixups.moviepy_fixups import moviepy_dummy
+from engineio.async_drivers import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='threading')
 link = str()
 
 @app.route('/')
@@ -46,5 +48,6 @@ def open_browser():
     webbrowser.open("http://127.0.0.1:5000")
 
 if __name__ == '__main__':
+    moviepy_dummy()
     Timer(1, open_browser).start()
-    socketio.run(app, debug=True, use_reloader=False)
+    socketio.run(app, use_reloader=False)
