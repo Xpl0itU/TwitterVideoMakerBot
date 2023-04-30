@@ -8,3 +8,4 @@ pandas==2.0.1
 textblob==0.17.1
 moviepy==2.0.0.dev2
 yt-dlp==2023.3.4
+nuitka==1.5.7
