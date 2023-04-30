@@ -31,7 +31,7 @@ jobs:
           onefile: true
           windows-icon-from-ico: static/img/App_Icon.png
           macos-create-app-bundle: true
-          include-data-dir: "static"="static", "templates"="templates", "data"="data"
+          include-data-dir: static=static, templates=templates, data=data
           output-file: Fudgify
 
       - name: Upload Artifacts
