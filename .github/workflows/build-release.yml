@@ -1,0 +1,44 @@
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-11, ubuntu-22.04, windows-2019]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - Name: Build Executable
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: main
+          script-name: app.py
+          onefile: true
+          windows-icon-from-ico: static/img/App_Icon.png
+          macos-create-app-bundle: true
+          include-data-dir: "static"="static", "templates"="templates", "data"="data"
+          output-file: Fudgify
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }} Build
+          path: |
+            build/*.exe
+            build/*.bin
+            build/*.app/**/*
