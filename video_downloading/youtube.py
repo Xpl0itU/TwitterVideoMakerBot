@@ -2,14 +2,15 @@ import os
 import random
 import json
 import yt_dlp
+import math
 from flask_socketio import emit
 
-def progress_hooks(d):
-    try:
-        if d["status"] == "downloading":
-            emit('progress', {'progress': int(d["downloaded_bytes"]) / int(d["total_bytes"]) * 100}, broadcast=True)
-    except Exception as e:
-        pass
+def report_progress(d):
+    if d.get("status") == "downloading":
+        total_bytes = d.get("total_bytes_estimate")
+        downloaded_bytes = d.get("downloaded_bytes")
+        if total_bytes and downloaded_bytes:
+            emit('progress', {'progress': math.floor(downloaded_bytes / total_bytes * 100)}, broadcast=True)
 
 def download_background() -> str:
     with open("data/videos.json", "r") as f:
@@ -22,11 +23,12 @@ def download_background() -> str:
 
         print("Downloading the background video...")
         emit('stage', {'stage': 'Downloading the background video'}, broadcast=True)
-        
+
         ydl_opts = {
             "format": "bestvideo[height<=1080][ext=mp4]",
             "outtmpl": f"assets/backgrounds/{filename}",
             "retries": 10,
+            "progress_hooks": [report_progress],
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
