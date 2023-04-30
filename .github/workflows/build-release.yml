@@ -11,18 +11,7 @@ jobs:
 
     steps:
       - name: Set separator
-        run: |
-          if [ "$(uname)" == "Darwin" ]; then
-            echo "::set-output name=os::macOS"
-          elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-            echo "::set-output name=os::Linux"
-          elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
-            echo "::set-output name=os::Windows"
-          elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
-            echo "::set-output name=os::Windows"
-          else
-            echo "::set-output name=os::Unknown"
-          fi
+        run: echo "::set-output name=separator::$([[ ${{ runner.os }} == 'Windows' ]] && echo ';' || echo ':')"
         id: set-separator
 
       - name: Check-out repository
