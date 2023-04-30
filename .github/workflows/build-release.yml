@@ -23,7 +23,7 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - Name: Build Executable
+      - name: Build Executable
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: main
