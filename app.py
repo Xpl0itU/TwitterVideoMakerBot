@@ -19,6 +19,9 @@ is_loggedin = False
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    global is_loggedin
+    if is_loggedin:
+        return redirect('/dashboard')
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
