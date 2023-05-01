@@ -4,7 +4,6 @@ temp/
 assets/
 app.build/
 app.dist/
-*.spec
 build/
 dist/
 env/

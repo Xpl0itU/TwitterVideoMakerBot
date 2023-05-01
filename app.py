@@ -9,6 +9,8 @@ from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
 from engineio.async_drivers import threading
 from firebase_info import firebase_auth
+import platform
+import sys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -53,6 +55,8 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
+    if platform.system() == "Darwin":
+        sys.exit(0)
     print('Client disconnected')
 
 @socketio.on('submit')
