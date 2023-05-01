@@ -3,13 +3,13 @@ from flask import Flask, render_template, send_file, after_this_request, request
 from flask_socketio import SocketIO
 import asyncio
 import os
-from multiprocessing import Process
+import multiprocessing
 from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
-import threading
 from firebase_info import firebase_auth
 from window import MainWindow
 from PyQt5.QtWidgets import QApplication
+from engineio.async_drivers import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -77,8 +77,8 @@ def get_video():
 
 if __name__ == '__main__':
     moviepy_dummy()
-    stop_event = threading.Event()
-    server = Process(target=app.run, kwargs={'use_reloader': False})
+    multiprocessing.set_start_method("fork")
+    server = multiprocessing.Process(target=app.run, kwargs={'use_reloader': False})
     server.start()
     app_qt = QApplication([])
     w = MainWindow()
