@@ -1,16 +1,15 @@
 import pyrebaselite
 from flask import Flask, render_template, send_file, after_this_request, request, redirect
 from flask_socketio import SocketIO
-from threading import Timer
-import webbrowser
 import asyncio
 import os
+from multiprocessing import Process
 from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
-from engineio.async_drivers import threading
+import threading
 from firebase_info import firebase_auth
-import platform
-import sys
+from window import MainWindow
+from PyQt5.QtWidgets import QApplication
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -55,8 +54,6 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
-    if platform.system() == "Darwin":
-        sys.exit(0)
     print('Client disconnected')
 
 @socketio.on('submit')
@@ -78,10 +75,14 @@ def get_video():
         return send_file(get_exported_video_path(link), as_attachment=True)
     return "No video to download"
 
-def open_browser():
-    webbrowser.open("http://127.0.0.1:5000")
-
 if __name__ == '__main__':
     moviepy_dummy()
-    Timer(1, open_browser).start()
-    socketio.run(app, use_reloader=False)
+    stop_event = threading.Event()
+    server = Process(target=app.run, kwargs={'use_reloader': False})
+    server.start()
+    app_qt = QApplication([])
+    w = MainWindow()
+    w.show()
+    app_qt.exec_()
+    server.terminate()
+    server.join()

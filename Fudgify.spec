@@ -46,7 +46,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -54,10 +54,7 @@ exe = EXE(
     entitlements_file=None,
     icon=['static/img/App_Icon.png'],
 )
-app = BUNDLE(exe,
-             name='Fudgify',
-             icon='static/img/App_Icon.png',
-             bundle_identifier='com.fudgify.Fudgify')
+
 coll = COLLECT(
     exe,
     a.binaries,
@@ -68,3 +65,8 @@ coll = COLLECT(
     upx_exclude=[],
     name='Fudgify',
 )
+
+app = BUNDLE(coll,
+             name='Fudgify.app',
+             icon='static/img/App_Icon.png',
+             bundle_identifier='com.fudgify.Fudgify')
