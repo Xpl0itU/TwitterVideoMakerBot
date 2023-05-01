@@ -10,10 +10,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Set separator
-        run: echo "::set-output name=separator::$([[ ${{ runner.os }} == 'Windows' ]] && echo ';' || echo ':')"
-        id: set-separator
-
       - name: Check-out repository
         uses: actions/checkout@v3
 
