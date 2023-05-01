@@ -1,5 +1,5 @@
 from tweetcapture import TweetCapture
-from tweety.bot import Twitter
+from tweety.bot import Twitter, Tweet
 import preprocessing_text_ben as pp
 
 from TTS.streamlabs_polly import StreamlabsPolly
@@ -15,6 +15,9 @@ def cleanup_tweet_text(x: str) -> str:
     x = pp.remove_rt(x)
     x = pp.remove_accented_chars(x)
     return x
+
+def get_tweet(id: int) -> Tweet:
+    return app.tweet_detail(id)
 
 def get_thread_tweets(id: int) -> list:
     tweet = app.tweet_detail(id)

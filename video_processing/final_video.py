@@ -5,7 +5,7 @@ import argparse
 import multiprocessing
 from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip
 import re
-from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet
+from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_tweet
 from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
@@ -35,6 +35,10 @@ async def generate_video(link: str) -> None:
     os.makedirs(temp_dir, exist_ok=True)
 
     tweets_in_thread = get_thread_tweets(id)
+    # Fix for first tweet in thread not being added
+    first_tweet = get_tweet(int(id))
+    if tweets_in_thread[0] != first_tweet:
+        tweets_in_thread.insert(0, first_tweet)
     video_clips = list()
     tweet_ids = list()
     tasks = list()
