@@ -31,7 +31,6 @@ input[type=password] {
     display: inline-block;
     font-size: 16px;
     cursor: pointer;
-    margin-top: 1%;
 }
 
 .green-button {
