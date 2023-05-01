@@ -10,3 +10,4 @@ moviepy==2.0.0.dev2
 yt-dlp==2023.3.4
 pyinstaller==5.10.1
 lxml==4.9.2
+Pyrebase4==4.6.0

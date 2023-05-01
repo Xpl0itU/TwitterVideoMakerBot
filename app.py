@@ -1,4 +1,5 @@
-from flask import Flask, render_template, send_file, after_this_request
+import pyrebaselite
+from flask import Flask, render_template, send_file, after_this_request, request, redirect
 from flask_socketio import SocketIO
 from threading import Timer
 import webbrowser
@@ -7,15 +8,41 @@ import os
 from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
 from engineio.async_drivers import threading
+from firebase_info import firebase_auth
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode='threading')
+firebase = pyrebaselite.initialize_app(firebase_auth)
 link = str()
+is_loggedin = False
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            auth = firebase.auth()
+            user = auth.sign_in_with_email_and_password(email, password)
+            if auth.get_account_info(user['idToken']) is not None:
+                # If authentication succeeds, redirect the user to their account page
+                is_loggedin = True
+                return redirect('/dashboard')
+            else:
+                # If authentication fails, render the login page with a message
+                return render_template('login.html', message='Login failed')
+        except:
+            # If the password is invalid, render the login page with a message
+            return render_template('login.html', message='Invalid email or password')
+    return render_template('login.html')
+
+@app.route('/dashboard')
 def index():
-    return render_template('index.html')
+    if is_loggedin:
+        return render_template('dashboard.html')
+    else:
+        return redirect('/')
 
 @socketio.on('connect')
 def test_connect():

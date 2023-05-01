@@ -15,6 +15,12 @@ input[type=text] {
     padding: 2%;
 }
 
+input[type=password] {
+    margin-top: 1%;
+    border: 2px solid #34558b;
+    padding: 2%;
+}
+
 .blue-button {
     background-color: #34558b;
     border: none;
@@ -25,6 +31,7 @@ input[type=text] {
     display: inline-block;
     font-size: 16px;
     cursor: pointer;
+    margin-top: 1%;
 }
 
 .green-button {
