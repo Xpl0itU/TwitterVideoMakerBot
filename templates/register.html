@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fudgify - Register</title>
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='img/App_Icon.png') }}">
+        <link rel= "stylesheet" type="text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
+    </head>
+
+<body>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+    <form method="POST" style="text-align: center">
+        <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%"><br>
+        <input type="text" placeholder="Email" name="email"><br>
+        <input type="password" placeholder="Password" name="password"><br>
+        <input type="submit" class="blue-button" style="margin-top: 1%;" value="Register">
+    </form>
+</body>
+</html>

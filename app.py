@@ -18,6 +18,22 @@ firebase = pyrebaselite.initialize_app(firebase_auth)
 link = str()
 is_loggedin = False
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            auth = firebase.auth()
+            auth.create_user_with_email_and_password(
+                email=email,
+                password=password
+            )
+            return redirect('/')
+        except:
+            return render_template('register.html', message="Error while creating account")
+    return render_template('register.html')
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     global is_loggedin
