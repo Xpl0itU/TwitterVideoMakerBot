@@ -44,18 +44,3 @@ input[type=password] {
     font-size: 16px;
     cursor: pointer;
 }
-
-@media (prefers-color-scheme: dark) {
-    body {
-        color:#c9d1d9;
-        background:#0d1117;
-    }
-
-    a:link {
-        color:#58a6ff;
-    }
-
-    a:visited {
-        color:#8e96f0;
-    }
-}

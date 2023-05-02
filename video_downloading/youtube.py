@@ -4,6 +4,7 @@ import json
 import yt_dlp
 import math
 from flask_socketio import emit
+import tempfile
 
 def report_progress(d):
     if d.get("status") == "downloading":
@@ -17,8 +18,8 @@ def download_background() -> str:
         data = json.load(f)
         filename, link = random.choice(list(data.items()))
         filename += ".mp4"
-        os.makedirs("./assets/backgrounds/", exist_ok=True)
-        if os.path.exists(f"assets/backgrounds/{filename}"):
+        os.makedirs(f"{tempfile.gettempdir()}/assets/backgrounds/", exist_ok=True)
+        if os.path.exists(f"{tempfile.gettempdir()}/assets/backgrounds/{filename}"):
             return filename
 
         print("Downloading the background video...")
@@ -26,7 +27,7 @@ def download_background() -> str:
 
         ydl_opts = {
             "format": "bestvideo[height<=1080][ext=mp4]",
-            "outtmpl": f"assets/backgrounds/{filename}",
+            "outtmpl": f"{tempfile.gettempdir()}/assets/backgrounds/{filename}",
             "retries": 10,
             "progress_hooks": [report_progress],
         }

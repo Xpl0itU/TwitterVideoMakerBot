@@ -9,6 +9,7 @@ from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_twe
 from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
+import tempfile
 
 import sys
 from flask_socketio import emit
@@ -28,8 +29,8 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
 async def generate_video(link: str) -> None:
     id = re.search("/status/(\d+)", link).group(1)
     username = re.search("twitter.com/(.*?)/status", link).group(1)
-    output_dir = f"results/{id}"
-    temp_dir = f"temp/{id}"
+    output_dir = f"{tempfile.gettempdir()}/results/{id}"
+    temp_dir = f"{tempfile.gettempdir()}/temp/{id}"
 
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
@@ -61,7 +62,7 @@ async def generate_video(link: str) -> None:
         "center"
     )
     tweets_clip = tweets_clip.set_position("center")
-    background_filename = f"./assets/backgrounds/{download_background()}"
+    background_filename = f"{tempfile.gettempdir()}/assets/backgrounds/{download_background()}"
     background_clip = VideoFileClip(background_filename)
     start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
     background_clip = background_clip.subclip(start_time, end_time)
@@ -84,13 +85,13 @@ async def generate_video(link: str) -> None:
     
     final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast")
     sys.stderr.write = original_stderr.write
-    shutil.rmtree("temp")
+    shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
     emit('done', {'done': None}, broadcast=True)
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
-    return f"results/{id}/Fudgify-{id}.mp4"
+    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.mp4"
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
