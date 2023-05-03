@@ -42,17 +42,11 @@ async def generate_video(link: str) -> None:
         tweets_in_thread.insert(0, first_tweet)
     video_clips = list()
     tweet_ids = list()
-    tasks = list()
-    port = 9222
     emit('stage', {'stage': 'Screenshotting tweets and generating the voice'}, broadcast=True)
     for tweet in tweets_in_thread:
         tweet_ids.append(tweet.id)
         thread_item_link = f"https://twitter.com/{username}/status/{tweet.id}"
-        tasks.append(asyncio.create_task(get_audio_video_from_tweet(thread_item_link, tweet.id, f"{temp_dir}", port)))
-        port += 1
-    
-    for task in asyncio.as_completed(tasks):
-        await task
+        await get_audio_video_from_tweet(thread_item_link, tweet.id, f"{temp_dir}")
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for tweet_id in tweet_ids:
@@ -83,7 +77,7 @@ async def generate_video(link: str) -> None:
 
     emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
     
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir())
+    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac')
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
