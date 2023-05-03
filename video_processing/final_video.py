@@ -43,10 +43,11 @@ async def generate_video(link: str) -> None:
     video_clips = list()
     tweet_ids = list()
     emit('stage', {'stage': 'Screenshotting tweets and generating the voice'}, broadcast=True)
-    for tweet in tweets_in_thread:
-        tweet_ids.append(tweet.id)
-        thread_item_link = f"https://twitter.com/{username}/status/{tweet.id}"
-        await get_audio_video_from_tweet(thread_item_link, tweet.id, f"{temp_dir}")
+    for i in range(len(tweets_in_thread)):
+        tweet_ids.append(tweets_in_thread[i].id)
+        thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
+        await get_audio_video_from_tweet(thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
+        emit('progress', {'progress': i / len(tweets_in_thread) * 100}, broadcast=True)
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for tweet_id in tweet_ids:
