@@ -1,10 +1,13 @@
-from playwright.async_api import async_playwright, Playwright
+from playwright.async_api import async_playwright
+from undetected_playwright import stealth_async
 
 async def screenshot_tweet(url: str, output_path: str):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
+        context = browser.new_context()
+        stealth_async(context)
 
-        page = await browser.new_page()
+        page = await context.new_page()
         await page.goto(url)
         await page.wait_for_selector("(//article[@data-testid='tweet'])[1]")
 
@@ -19,4 +22,5 @@ async def screenshot_tweet(url: str, output_path: str):
 
         await tweet.screenshot(path=output_path)
 
+        await context.close()
         await browser.close()
