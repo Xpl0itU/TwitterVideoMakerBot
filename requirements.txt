@@ -1,6 +1,5 @@
 Flask==2.3.1
 Flask-SocketIO==5.3.3
-tweet-capture==0.1.9
 tweety-ns==0.6.1
 tweetben==0.0.1
 spacy==3.5.2
@@ -12,3 +11,4 @@ pyinstaller==5.10.1
 lxml==4.9.2
 pyrebase4lite==0.1.1
 PyQt5==5.15.9
+playwright==1.33.0
