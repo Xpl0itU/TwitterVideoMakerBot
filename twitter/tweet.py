@@ -27,7 +27,6 @@ def get_thread_tweets(id: int) -> list:
     return tweet.threads
 
 async def get_audio_video_from_tweet(link: str, id: int, output: str, port: int) -> None:
-    tweet.add_chrome_argument(f"--remote-debugging-port={port}")
     await screenshot_tweet(link, f"{output}/{id}.png")
     tweet = app.tweet_detail(id)
     tweet_text = cleanup_tweet_text(tweet.text)
