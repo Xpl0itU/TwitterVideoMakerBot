@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         hide_button.pressed.connect(self.lower)
         layout.addWidget(hide_button)
 
-        close_button = QPushButton("Close")
+        close_button = QPushButton("Quit")
         close_button.pressed.connect(self.close)
         layout.addWidget(close_button)
 

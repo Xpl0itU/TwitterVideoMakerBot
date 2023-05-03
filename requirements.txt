@@ -11,5 +11,4 @@ pyinstaller==5.10.1
 lxml==4.9.2
 pyrebase4lite==0.1.1
 PyQt5==5.15.9
-playwright==1.27.1
-undetected-playwright==0.0.5
+playwright==1.33.0
