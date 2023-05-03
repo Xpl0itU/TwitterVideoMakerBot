@@ -4,8 +4,8 @@ from undetected_playwright import stealth_async
 async def screenshot_tweet(url: str, output_path: str):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        context = browser.new_context()
-        stealth_async(context)
+        context = await browser.new_context()
+        await stealth_async(context)
 
         page = await context.new_page()
         await page.goto(url)
