@@ -17,6 +17,8 @@ socketio = SocketIO(app, async_mode='threading')
 firebase = pyrebaselite.initialize_app(firebase_auth)
 link = str()
 is_loggedin = False
+# Fix for macOS crash
+os.environ['no_proxy'] = '*'
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
