@@ -3,7 +3,6 @@ import random
 import yt_dlp
 import math
 from flask_socketio import emit
-import tempfile
 from video_processing.user_data import get_user_data_dir
 
 videos = {

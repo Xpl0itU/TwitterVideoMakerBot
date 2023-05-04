@@ -10,6 +10,7 @@ from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
 import tempfile
+from video_processing.user_data import get_user_data_dir
 
 import sys
 from flask_socketio import emit
@@ -64,7 +65,7 @@ async def generate_video(link: str) -> None:
         "center"
     )
     tweets_clip = tweets_clip.set_position("center")
-    background_filename = f"{tempfile.gettempdir()}/assets/backgrounds/{download_background()}"
+    background_filename = f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     background_clip = VideoFileClip(background_filename)
     start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
     background_clip = background_clip.subclip(start_time, end_time)
