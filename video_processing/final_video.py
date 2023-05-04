@@ -86,7 +86,7 @@ async def generate_video(link: str) -> None:
 
     emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
     
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac', codec='libx264', temp_audiofile='temp-audio.m4a')
+    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac', codec='libx264', temp_audiofile=f'{tempfile.gettempdir()}/temp-audio.m4a')
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
