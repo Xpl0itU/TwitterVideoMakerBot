@@ -52,14 +52,14 @@ async def generate_video(link: str) -> None:
             tweet_ids.append(tweets_in_thread[i].id)
             thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
             await get_audio_video_from_tweet(page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
-            emit('progress', {'progress': i / len(tweets_in_thread) * 100}, broadcast=True)
+            emit('progress', {'progress': i // len(tweets_in_thread) * 100}, broadcast=True)
         
         await browser.close()
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for i in range(len(tweet_ids)):
         video_clips.append(create_video_clip(f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"))
-        emit('progress', {'progress': i / len(tweet_ids) * 100}, broadcast=True)
+        emit('progress', {'progress': i // len(tweet_ids) * 100}, broadcast=True)
     
     tweets_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0).set_position(
         "center"
@@ -86,7 +86,7 @@ async def generate_video(link: str) -> None:
 
     emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
     
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac', codec='libx264', temp_audiofile=f'{tempfile.gettempdir()}/temp-audio.m4a')
+    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.webm", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec='libvpx')
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
@@ -94,7 +94,7 @@ async def generate_video(link: str) -> None:
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.mp4"
+    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.webm"
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
