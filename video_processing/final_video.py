@@ -50,8 +50,9 @@ async def generate_video(link: str) -> None:
         emit('progress', {'progress': i / len(tweets_in_thread) * 100}, broadcast=True)
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
-    for tweet_id in tweet_ids:
-        video_clips.append(create_video_clip(f"{temp_dir}/{tweet_id}.mp3", f"{temp_dir}/{tweet_id}.png"))
+    for i in range(len(tweet_ids)):
+        video_clips.append(create_video_clip(f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"))
+        emit('progress', {'progress': i / len(tweet_ids) * 100}, broadcast=True)
     
     tweets_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0).set_position(
         "center"
