@@ -49,8 +49,17 @@ jobs:
           pip install -r requirements.txt
           python -m textblob.download_corpora
           python -m spacy download en_core_web_sm
-          python -m playwright install
-          python -m playwright install-deps
+      
+      - name: Install Playwright Firefox
+        run: |
+          PLAYWRIGHT_BROWSERS_PATH=0 playwright install firefox
+        if: runner.os != 'Windows'
+      
+      - name: Install Playwright Firefox
+        run: |
+          $env:PLAYWRIGHT_BROWSERS_PATH="0"
+          playwright install firefox
+        if: runner.os == 'Windows'
 
       - name: Build Executable
         run: |
