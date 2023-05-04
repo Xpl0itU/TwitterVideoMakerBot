@@ -4,6 +4,7 @@ import preprocessing_text_ben as pp
 from TTS.streamlabs_polly import StreamlabsPolly
 
 from twitter.tweet_screenshot import screenshot_tweet
+from playwright.async_api import Page
 
 app = Twitter()
 
@@ -26,8 +27,8 @@ def get_thread_tweets(id: int) -> list:
         return [tweet]
     return tweet.threads
 
-async def get_audio_video_from_tweet(link: str, id: int, output: str) -> None:
-    await screenshot_tweet(link, f"{output}/{id}.png")
+async def get_audio_video_from_tweet(page: Page, link: str, id: int, output: str) -> None:
+    await screenshot_tweet(page, link, f"{output}/{id}.png")
     tweet = app.tweet_detail(id)
     tweet_text = cleanup_tweet_text(tweet.text)
     engine = StreamlabsPolly()

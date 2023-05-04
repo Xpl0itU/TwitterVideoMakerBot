@@ -4,6 +4,7 @@ import yt_dlp
 import math
 from flask_socketio import emit
 import tempfile
+from video_processing.user_data import get_user_data_dir
 
 videos = {
     "minecraft": "https://www.youtube.com/watch?v=n_Dv4JMiwK8",
@@ -21,8 +22,8 @@ def report_progress(d):
 def download_background() -> str:
     filename, link = random.choice(list(videos.items()))
     filename += ".mp4"
-    os.makedirs(f"{tempfile.gettempdir()}/assets/backgrounds/", exist_ok=True)
-    if os.path.exists(f"{tempfile.gettempdir()}/assets/backgrounds/{filename}"):
+    os.makedirs(f"{get_user_data_dir()}/assets/backgrounds/", exist_ok=True)
+    if os.path.exists(f"{get_user_data_dir()}/assets/backgrounds/{filename}"):
         return filename
 
     print("Downloading the background video...")
@@ -30,7 +31,7 @@ def download_background() -> str:
 
     ydl_opts = {
         "format": "bestvideo[height<=1080][ext=mp4]",
-        "outtmpl": f"{tempfile.gettempdir()}/assets/backgrounds/{filename}",
+        "outtmpl": f"{get_user_data_dir()}/assets/backgrounds/{filename}",
         "retries": 10,
         "progress_hooks": [report_progress],
     }

@@ -14,6 +14,7 @@ import tempfile
 import sys
 from flask_socketio import emit
 from video_processing.logger import MoviePyLogger
+from playwright.async_api import async_playwright
 
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     random_time = randrange(180, int(length_of_clip) - int(video_length))
@@ -43,11 +44,16 @@ async def generate_video(link: str) -> None:
     video_clips = list()
     tweet_ids = list()
     emit('stage', {'stage': 'Screenshotting tweets and generating the voice'}, broadcast=True)
-    for i in range(len(tweets_in_thread)):
-        tweet_ids.append(tweets_in_thread[i].id)
-        thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
-        await get_audio_video_from_tweet(thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
-        emit('progress', {'progress': i / len(tweets_in_thread) * 100}, broadcast=True)
+    async with async_playwright() as p:
+        browser = await p.firefox.launch(headless=True)
+        page = await browser.new_page()
+        for i in range(len(tweets_in_thread)):
+            tweet_ids.append(tweets_in_thread[i].id)
+            thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
+            await get_audio_video_from_tweet(page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
+            emit('progress', {'progress': i / len(tweets_in_thread) * 100}, broadcast=True)
+        
+        await browser.close()
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for i in range(len(tweet_ids)):
@@ -79,7 +85,7 @@ async def generate_video(link: str) -> None:
 
     emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
     
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac')
+    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), audio_codec='aac', codec='libx264')
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
