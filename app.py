@@ -10,6 +10,9 @@ from firebase_info import firebase_auth
 from window import MainWindow
 from PyQt5.QtWidgets import QApplication
 from engineio.async_drivers import threading
+import platform
+import webbrowser
+from threading import Timer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -79,12 +82,16 @@ def get_video():
 
 if __name__ == '__main__':
     moviepy_dummy()
-    multiprocessing.set_start_method("fork")
-    server = multiprocessing.Process(target=app.run, kwargs={'use_reloader': False})
-    server.start()
-    app_qt = QApplication([])
-    w = MainWindow()
-    w.show()
-    app_qt.exec_()
-    server.terminate()
-    server.join()
+    if platform.system() == 'Windows':
+        Timer(1, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
+        socketio.run(app, use_reloader=False)
+    else:
+        multiprocessing.set_start_method("fork")
+        server = multiprocessing.Process(target=app.run, kwargs={'use_reloader': False})
+        server.start()
+        app_qt = QApplication([])
+        w = MainWindow()
+        w.show()
+        app_qt.exec_()
+        server.terminate()
+        server.join()

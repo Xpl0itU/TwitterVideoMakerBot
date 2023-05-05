@@ -64,6 +64,12 @@ jobs:
       - name: Build Executable
         run: |
           pyinstaller --clean --upx-dir=upx --noconfirm Fudgify.spec
+        if: runner.os != 'Windows'
+      
+      - name: Build Executable
+        run: |
+          pyinstaller -D -n Fudgify --add-data "static;static" --add-data "templates;templates" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --upx-dir=upx --noconfirm app.py
+        if: runner.os == 'Windows'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
