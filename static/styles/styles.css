@@ -44,3 +44,8 @@ input[type=password] {
     font-size: 16px;
     cursor: pointer;
 }
+
+.small-text {
+    font-size: small;
+    margin: 0;
+}

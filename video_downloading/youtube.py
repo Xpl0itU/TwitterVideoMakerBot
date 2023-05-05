@@ -1,14 +1,15 @@
 import os
 import random
 import yt_dlp
-import math
 from flask_socketio import emit
 from video_processing.user_data import get_user_data_dir
 
 videos = {
-    "minecraft": "https://www.youtube.com/watch?v=n_Dv4JMiwK8",
-    "csgo": "https://www.youtube.com/watch?v=SNHDZlVxuYc",
-    "fall_guys": "https://www.youtube.com/watch?v=0ifS1fBWpWc"
+    "minecraft": "https://www.youtube.com/watch?v=ZCPt78a1eLc",
+    "minecraft-2": "https://www.youtube.com/watch?v=b_nJhnTQaZI",
+    "minecraft-3": "https://www.youtube.com/watch?v=JPjwv8RHhMY",
+    "subway": "https://www.youtube.com/watch?v=exoFKSWA1RM",
+    "subway-2": "https://www.youtube.com/watch?v=uDE7YUJNPzs"
 }
 
 def report_progress(d):
