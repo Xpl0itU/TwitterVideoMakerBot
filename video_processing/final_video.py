@@ -86,7 +86,7 @@ async def generate_video(link: str) -> None:
 
     emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
     
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.mp4", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec="libx264", audio_codec="aac", audio_bitrate="128k")
+    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.webm", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec="libvpx", bitrate="50000k", audio_bitrate="128k")
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
@@ -94,7 +94,7 @@ async def generate_video(link: str) -> None:
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.mp4"
+    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.webm"
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
