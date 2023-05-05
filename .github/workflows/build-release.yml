@@ -13,17 +13,6 @@ jobs:
       - name: Check-out repository
         uses: actions/checkout@v3
 
-      - name: Download and Install UPX
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-2019" ]]; then
-            Invoke-WebRequest -UseBasicParsing https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip -OutFile upx.zip
-            Expand-Archive upx.zip -DestinationPath upx
-            $env:PATH += ";$(pwd)/upx"
-          else
-            curl -L https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-amd64_linux.tar.xz | tar -xJ
-            export PATH=$PATH:$(pwd)/upx-4.0.2-amd64_linux
-          fi
-
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -68,7 +57,7 @@ jobs:
       
       - name: Build Executable
         run: |
-          pyinstaller -D -n Fudgify --add-data "static;static" --add-data "templates;templates" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --upx-dir=upx --noconfirm app.py
+          pyinstaller -D -n Fudgify --add-data "static;static" --add-data "templates;templates" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --noconfirm app.py
         if: runner.os == 'Windows'
 
       - name: Upload Artifacts
