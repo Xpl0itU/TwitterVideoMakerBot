@@ -52,7 +52,7 @@ jobs:
 
       - name: Build Executable
         run: |
-          pyinstaller --clean --upx-dir=upx --noconfirm Fudgify.spec
+          pyinstaller --clean --noconfirm Fudgify.spec
         if: runner.os != 'Windows'
       
       - name: Build Executable
