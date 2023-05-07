@@ -90,7 +90,7 @@ async def generate_video(link: str) -> None:
     final_video.write_videofile(f"{output_dir}/Fudgify-{id}.webm", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec="libvpx", bitrate="50000k", audio_bitrate="128k")
     sys.stderr.write = original_stderr.write
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
-    emit('stage', {'stage': 'Video generated, ready to export'}, broadcast=True)
+    emit('stage', {'stage': 'Video generated, ready to download'}, broadcast=True)
     emit('done', {'done': None}, broadcast=True)
 
 def get_exported_video_path(link: str) -> str:
