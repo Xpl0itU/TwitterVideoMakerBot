@@ -3,7 +3,12 @@ from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.audio.AudioClip import AudioClip
-from moviepy.editor import concatenate_videoclips,concatenate_audioclips,TextClip,CompositeVideoClip
+from moviepy.editor import (
+    concatenate_videoclips,
+    concatenate_audioclips,
+    TextClip,
+    CompositeVideoClip,
+)
 from moviepy.video.fx.accel_decel import accel_decel
 from moviepy.video.fx.blackwhite import blackwhite
 from moviepy.video.fx.blink import blink
@@ -41,6 +46,7 @@ from moviepy.audio.fx.audio_left_right import audio_left_right
 from moviepy.audio.fx.audio_loop import audio_loop
 from moviepy.audio.fx.audio_normalize import audio_normalize
 from moviepy.audio.fx.volumex import volumex
+
 
 def moviepy_dummy():
     return

@@ -8,6 +8,7 @@ from playwright.async_api import Page
 
 app = Twitter()
 
+
 def cleanup_tweet_text(x: str) -> str:
     x = x.lower()
     x = pp.cont_to_exp(x)
@@ -18,8 +19,10 @@ def cleanup_tweet_text(x: str) -> str:
     x = pp.remove_accented_chars(x)
     return x
 
+
 def get_tweet(id: int) -> Tweet:
     return app.tweet_detail(id)
+
 
 def get_thread_tweets(id: int) -> list:
     tweet = app.tweet_detail(id)
@@ -27,7 +30,10 @@ def get_thread_tweets(id: int) -> list:
         return [tweet]
     return tweet.threads
 
-async def get_audio_video_from_tweet(page: Page, link: str, id: int, output: str) -> None:
+
+async def get_audio_video_from_tweet(
+    page: Page, link: str, id: int, output: str
+) -> None:
     await screenshot_tweet(page, link, f"{output}/{id}.png")
     tweet = app.tweet_detail(id)
     tweet_text = cleanup_tweet_text(tweet.text)

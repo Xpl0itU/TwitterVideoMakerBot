@@ -3,7 +3,14 @@ import os
 import shutil
 import argparse
 import multiprocessing
-from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip, vfx
+from moviepy.editor import (
+    AudioFileClip,
+    ImageClip,
+    concatenate_videoclips,
+    VideoFileClip,
+    CompositeVideoClip,
+    vfx,
+)
 import re
 from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_tweet
 from random import randrange
@@ -18,9 +25,11 @@ from video_processing.logger import MoviePyLogger
 from playwright.async_api import async_playwright
 import math
 
+
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     random_time = randrange(180, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
+
 
 def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     audio_clip = AudioFileClip(audio_path)
@@ -28,6 +37,7 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     image_clip = image_clip.set_audio(audio_clip)
     image_clip = image_clip.set_duration(audio_clip.duration)
     return image_clip.set_fps(1)
+
 
 async def generate_video(link: str) -> None:
     id = re.search("/status/(\d+)", link).group(1)
@@ -45,30 +55,54 @@ async def generate_video(link: str) -> None:
         tweets_in_thread.insert(0, first_tweet)
     video_clips = list()
     tweet_ids = list()
-    emit('stage', {'stage': 'Screenshotting tweets and generating the voice'}, broadcast=True)
+    emit(
+        "stage",
+        {"stage": "Screenshotting tweets and generating the voice"},
+        broadcast=True,
+    )
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
         page = await browser.new_page()
         for i in range(len(tweets_in_thread)):
             tweet_ids.append(tweets_in_thread[i].id)
-            thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
-            await get_audio_video_from_tweet(page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
-            emit('progress', {'progress': math.floor(i / len(tweets_in_thread) * 100)}, broadcast=True)
-        
+            thread_item_link = (
+                f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
+            )
+            await get_audio_video_from_tweet(
+                page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}"
+            )
+            emit(
+                "progress",
+                {"progress": math.floor(i / len(tweets_in_thread) * 100)},
+                broadcast=True,
+            )
+
         await browser.close()
-    
-    emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
+
+    emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     for i in range(len(tweet_ids)):
-        video_clips.append(create_video_clip(f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"))
-        emit('progress', {'progress': math.floor(i / len(tweet_ids) * 100)}, broadcast=True)
-    
-    tweets_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0).set_position(
-        "center"
-    )
+        video_clips.append(
+            create_video_clip(
+                f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"
+            )
+        )
+        emit(
+            "progress",
+            {"progress": math.floor(i / len(tweet_ids) * 100)},
+            broadcast=True,
+        )
+
+    tweets_clip = concatenate_videoclips(
+        video_clips, "compose", bg_color=None, padding=0
+    ).set_position("center")
     tweets_clip = tweets_clip.set_position("center")
-    background_filename = f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
+    background_filename = (
+        f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
+    )
     background_clip = VideoFileClip(background_filename)
-    start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
+    start_time, end_time = get_start_and_end_times(
+        tweets_clip.duration, background_clip.duration
+    )
     background_clip = background_clip.subclip(start_time, end_time)
     background_clip = background_clip.without_audio()
     background_clip = background_clip.resize(height=1920)
@@ -86,25 +120,38 @@ async def generate_video(link: str) -> None:
     original_stderr = sys.stderr
     sys.stderr.write = logger.custom_stdout_write
 
-    emit('stage', {'stage': 'Rendering final video'}, broadcast=True)
-    
-    final_video.write_videofile(f"{output_dir}/Fudgify-{id}.webm", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec="libvpx", bitrate="50000k", audio_bitrate="128k")
+    emit("stage", {"stage": "Rendering final video"}, broadcast=True)
+
+    final_video.write_videofile(
+        f"{output_dir}/Fudgify-{id}.webm",
+        fps=24,
+        remove_temp=True,
+        threads=multiprocessing.cpu_count(),
+        preset="ultrafast",
+        temp_audiofile_path=tempfile.gettempdir(),
+        codec="libvpx",
+        bitrate="50000k",
+        audio_bitrate="128k",
+    )
     sys.stderr.write = original_stderr.write
-    emit('stage', {'stage': 'Cleaning up temporary files'}, broadcast=True)
+    emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
-    emit('stage', {'stage': 'Video generated, ready to download'}, broadcast=True)
-    emit('done', {'done': None}, broadcast=True)
+    emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
+    emit("done", {"done": None}, broadcast=True)
+
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
     return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.webm"
 
+
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-                    prog='TwitterVideoMakerBot',
-                    description='Generates a video from a thread of tweets')
-    parser.add_argument('tweet_link', nargs='?', type=str, help='Link of the tweet')
+        prog="TwitterVideoMakerBot",
+        description="Generates a video from a thread of tweets",
+    )
+    parser.add_argument("tweet_link", nargs="?", type=str, help="Link of the tweet")
     args = parser.parse_args()
     if args.tweet_link is None:
         link = input("Link of the tweet: ")

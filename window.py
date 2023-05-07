@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidget
 import webbrowser
 
+
 def open_browser():
     webbrowser.open("http://127.0.0.1:5000")
+
 
 class MainWindow(QMainWindow):
     def __init__(self):

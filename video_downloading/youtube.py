@@ -10,15 +10,21 @@ videos = {
     "minecraft-2": "https://www.youtube.com/watch?v=b_nJhnTQaZI",
     "minecraft-3": "https://www.youtube.com/watch?v=JPjwv8RHhMY",
     "subway": "https://www.youtube.com/watch?v=exoFKSWA1RM",
-    "subway-2": "https://www.youtube.com/watch?v=uDE7YUJNPzs"
+    "subway-2": "https://www.youtube.com/watch?v=uDE7YUJNPzs",
 }
+
 
 def report_progress(d):
     if d.get("status") == "downloading":
         total_bytes = d.get("total_bytes_estimate")
         downloaded_bytes = d.get("downloaded_bytes")
         if total_bytes and downloaded_bytes:
-            emit('progress', {'progress': math.floor(downloaded_bytes / total_bytes * 100)}, broadcast=True)
+            emit(
+                "progress",
+                {"progress": math.floor(downloaded_bytes / total_bytes * 100)},
+                broadcast=True,
+            )
+
 
 def download_background() -> str:
     filename, link = random.choice(list(videos.items()))
@@ -28,7 +34,7 @@ def download_background() -> str:
         return filename
 
     print("Downloading the background video...")
-    emit('stage', {'stage': 'Downloading the background video'}, broadcast=True)
+    emit("stage", {"stage": "Downloading the background video"}, broadcast=True)
 
     ydl_opts = {
         "format": "bestvideo[height<=1080][ext=mp4]",

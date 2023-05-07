@@ -1,5 +1,12 @@
 import pyrebaselite
-from flask import Flask, render_template, send_file, after_this_request, request, redirect
+from flask import (
+    Flask,
+    render_template,
+    send_file,
+    after_this_request,
+    request,
+    redirect,
+)
 from flask_socketio import SocketIO
 import asyncio
 import os
@@ -15,61 +22,68 @@ import webbrowser
 from threading import Timer
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode='threading')
+app.config["SECRET_KEY"] = "secret!"
+socketio = SocketIO(app, async_mode="threading")
 firebase = pyrebaselite.initialize_app(firebase_auth)
 link = str()
 is_loggedin = False
 # Fix for macOS crash
-os.environ['no_proxy'] = '*'
+os.environ["no_proxy"] = "*"
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route("/", methods=["GET", "POST"])
 def login():
     global is_loggedin
     if is_loggedin:
-        return redirect('/dashboard')
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        return redirect("/dashboard")
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
         try:
             auth = firebase.auth()
             user = auth.sign_in_with_email_and_password(email, password)
-            if auth.get_account_info(user['idToken']) is not None:
+            if auth.get_account_info(user["idToken"]) is not None:
                 # If authentication succeeds, redirect the user to their account page
                 is_loggedin = True
-                return redirect('/dashboard')
+                return redirect("/dashboard")
             else:
                 # If authentication fails, render the login page with a message
-                return render_template('login.html', message='Login failed')
+                return render_template("login.html", message="Login failed")
         except:
             # If the password is invalid, render the login page with a message
-            return render_template('login.html', message='Invalid email or password')
-    return render_template('login.html')
+            return render_template("login.html", message="Invalid email or password")
+    return render_template("login.html")
 
-@app.route('/dashboard')
+
+@app.route("/dashboard")
 def index():
     if is_loggedin:
-        return render_template('dashboard.html')
+        return render_template("dashboard.html")
     else:
-        return redirect('/')
+        return redirect("/")
 
-@socketio.on('connect')
+
+@socketio.on("connect")
 def test_connect():
-    print('Client connected')
+    print("Client connected")
 
-@socketio.on('disconnect')
+
+@socketio.on("disconnect")
 def test_disconnect():
-    print('Client disconnected')
+    print("Client disconnected")
 
-@socketio.on('submit')
+
+@socketio.on("submit")
 def handle_submit(data):
     global link
-    link = data['text']
+    link = data["text"]
     asyncio.run(generate_video(link))
 
-@app.route('/video')
+
+@app.route("/video")
 def get_video():
     if len(link) and os.path.isfile(get_exported_video_path(link)):
+
         @after_this_request
         def delete_video(response):
             try:
@@ -77,17 +91,19 @@ def get_video():
             except Exception as ex:
                 print(ex)
             return response
+
         return send_file(get_exported_video_path(link), as_attachment=True)
     return "No video to download"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     moviepy_dummy()
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         Timer(1, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
         socketio.run(app, use_reloader=False)
     else:
         multiprocessing.set_start_method("fork")
-        server = multiprocessing.Process(target=app.run, kwargs={'use_reloader': False})
+        server = multiprocessing.Process(target=app.run, kwargs={"use_reloader": False})
         server.start()
         app_qt = QApplication([])
         w = MainWindow()

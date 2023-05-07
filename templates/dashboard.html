@@ -1,77 +1,83 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Fudgify - Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='img/App_Icon.png') }}">
-    <link rel= "stylesheet" type="text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
-  </head>
-  <body>
-    <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
-    <div>
-      <input type="text" id="text" placeholder="Enter your tweet's link here" size="50">
-      <button id="submit" type="button" class="blue-button">Submit</button>
+
+<head>
+  <title>Fudgify - Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='img/App_Icon.png') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}">
+</head>
+
+<body>
+  <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
+  <div>
+    <input type="text" id="text" placeholder="Enter your tweet's link here" size="50">
+    <button id="submit" type="button" class="blue-button">Submit</button>
+  </div>
+  <p class="small-text">Average wait time is 10 minutes.</p>
+  <hr>
+  <div id="progress-container" style="display:none">
+    <h2>Status:</h2>
+    <span><b>Stage: </b></span>
+    <span id="stage">Starting</span><br>
+    <span><b>Progress: </b></span>
+    <span id="progress-bar" style="width:0%">0%</span><br>
+    <div style="display:none" id="results-container">
+      <button id="export" type="button" class="green-button" onclick="location.href='/video';">Download</button>
+      <br>
     </div>
-    <p class="small-text">Average wait time is 10 minutes.</p>
-    <hr>
-    <div id="progress-container" style="display:none">
-      <h2>Status:</h2>
-      <span><b>Stage: </b></span>
-      <span id="stage">Starting</span><br>
-      <span><b>Progress: </b></span>
-      <span id="progress-bar" style="width:0%">0%</span><br>
-      <div style="display:none" id="results-container">
-        <button id="export" type="button" class="green-button" onclick="location.href='/video';">Download</button>
-        <br>
-      </div>
-      <p class="small-text"><b>Note for Apple users: </b>Preview exported video in VLC (<a href="https://www.videolan.org/vlc/">https://www.videolan.org/vlc/</a>) or in a browser (excluding Safari). To upload the video, visit the desktop website version of TikTok, Youtube or Instagram. Uploading it from your phone will not work. If you need help, please email fudgify@protonmail.com.</p>
-    </div>
+    <p class="small-text"><b>Note for Apple users: </b>Preview exported video in VLC (<a
+        href="https://www.videolan.org/vlc/">https://www.videolan.org/vlc/</a>) or in a browser (excluding Safari). To
+      upload the video, visit the desktop website version of TikTok, Youtube or Instagram. Uploading it from your phone
+      will not work. If you need help, please email fudgify@protonmail.com.</p>
+  </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
-    <script>
-      var socket = io.connect('http://' + document.domain + ':' + location.port);
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-      var submitButton = document.getElementById('submit');
-      var textInput = document.getElementById('text');
-      var progressContainer = document.getElementById('progress-container');
-      var stage = document.getElementById('stage');
-      var progressBar = document.getElementById('progress-bar');
-      var resultsContainer = document.getElementById('results-container');
+    var submitButton = document.getElementById('submit');
+    var textInput = document.getElementById('text');
+    var progressContainer = document.getElementById('progress-container');
+    var stage = document.getElementById('stage');
+    var progressBar = document.getElementById('progress-bar');
+    var resultsContainer = document.getElementById('results-container');
 
-      submitButton.addEventListener('click', function() {
-        // Clear the progress bar
-        progressBar.style.width = '0%';
-        progressBar.innerText = '0%';
+    submitButton.addEventListener('click', function () {
+      // Clear the progress bar
+      progressBar.style.width = '0%';
+      progressBar.innerText = '0%';
 
-        stage.style.width = 'Starting';
-        stage.innerText = 'Starting';
+      stage.style.width = 'Starting';
+      stage.innerText = 'Starting';
 
-        submitButton.disabled = true; 
+      submitButton.disabled = true;
 
-        resultsContainer.style.display = 'none';
+      resultsContainer.style.display = 'none';
 
-        // Show the progress container
-        progressContainer.style.display = '';
+      // Show the progress container
+      progressContainer.style.display = '';
 
-        // Send the text input to the server
-        socket.emit('submit', {text: textInput.value});
-      });
+      // Send the text input to the server
+      socket.emit('submit', { text: textInput.value });
+    });
 
-      socket.on('done', function(data) {
-        // Show the export button
-        resultsContainer.style.display = 'block';
-        submitButton.disabled = false;
-      });
+    socket.on('done', function (data) {
+      // Show the export button
+      resultsContainer.style.display = 'block';
+      submitButton.disabled = false;
+    });
 
-      socket.on('stage', function(data) {
-        // Update the stage
-        stage.innerText = data.stage;
-      });
+    socket.on('stage', function (data) {
+      // Update the stage
+      stage.innerText = data.stage;
+    });
 
-      socket.on('progress', function(data) {
-        // Update the progress bar
-        progressBar.style.width = data.progress + '%';
-        progressBar.innerText = data.progress + '%';
-      });
-    </script>
-  </body>
+    socket.on('progress', function (data) {
+      // Update the progress bar
+      progressBar.style.width = data.progress + '%';
+      progressBar.innerText = data.progress + '%';
+    });
+  </script>
+</body>
+
 </html>

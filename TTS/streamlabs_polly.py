@@ -28,6 +28,7 @@ voices = [
     "Raveena",
 ]
 
+
 def sleep_until(time) -> None:
     """
     Pause your program until a specific end time.
@@ -64,6 +65,7 @@ def sleep_until(time) -> None:
             # 'logarithmic' sleeping to minimize loop iterations
             sleep(diff / 2)
 
+
 def check_ratelimit(response: Response) -> bool:
     """
     Checks if the response is a ratelimit response.
@@ -79,6 +81,7 @@ def check_ratelimit(response: Response) -> bool:
             return False
 
     return True
+
 
 class StreamlabsPolly:
     def __init__(self):
