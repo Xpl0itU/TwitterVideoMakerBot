@@ -14,7 +14,7 @@ videos = {
 }
 
 
-def report_progress(d):
+def report_progress(d) -> None:
     if d.get("status") == "downloading":
         total_bytes = d.get("total_bytes_estimate")
         downloaded_bytes = d.get("downloaded_bytes")

@@ -2,7 +2,7 @@ from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 from flask_socketio import emit
 
 
-async def screenshot_tweet(page: Page, url: str, output_path: str):
+async def screenshot_tweet(page: Page, url: str, output_path: str) -> None:
     try:
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
