@@ -3,6 +3,7 @@ import random
 import yt_dlp
 from flask_socketio import emit
 from video_processing.user_data import get_user_data_dir
+import math
 
 videos = {
     "minecraft": "https://www.youtube.com/watch?v=ZCPt78a1eLc",
@@ -17,7 +18,7 @@ def report_progress(d):
         total_bytes = d.get("total_bytes_estimate")
         downloaded_bytes = d.get("downloaded_bytes")
         if total_bytes and downloaded_bytes:
-            emit('progress', {'progress': downloaded_bytes // total_bytes * 100}, broadcast=True)
+            emit('progress', {'progress': math.floor(downloaded_bytes / total_bytes * 100)}, broadcast=True)
 
 def download_background() -> str:
     filename, link = random.choice(list(videos.items()))

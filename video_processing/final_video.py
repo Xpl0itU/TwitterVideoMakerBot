@@ -3,7 +3,7 @@ import os
 import shutil
 import argparse
 import multiprocessing
-from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip
+from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, VideoFileClip, CompositeVideoClip, vfx
 import re
 from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_tweet
 from random import randrange
@@ -78,6 +78,7 @@ async def generate_video(link: str) -> None:
     background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
     screenshot_width = int((1080 * 90) // 100)
     tweets_clip = tweets_clip.resize(width=screenshot_width)
+    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
     final_video = CompositeVideoClip([background_clip, tweets_clip])
 
     logger = MoviePyLogger()
