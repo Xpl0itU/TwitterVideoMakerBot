@@ -16,6 +16,7 @@ import sys
 from flask_socketio import emit
 from video_processing.logger import MoviePyLogger
 from playwright.async_api import async_playwright
+import math
 
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     random_time = randrange(180, int(length_of_clip) - int(video_length))
@@ -52,14 +53,14 @@ async def generate_video(link: str) -> None:
             tweet_ids.append(tweets_in_thread[i].id)
             thread_item_link = f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
             await get_audio_video_from_tweet(page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}")
-            emit('progress', {'progress': i // len(tweets_in_thread) * 100}, broadcast=True)
+            emit('progress', {'progress': math.floor(i / len(tweets_in_thread) * 100)}, broadcast=True)
         
         await browser.close()
     
     emit('stage', {'stage': 'Creating clips for each tweet'}, broadcast=True)
     for i in range(len(tweet_ids)):
         video_clips.append(create_video_clip(f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"))
-        emit('progress', {'progress': i // len(tweet_ids) * 100}, broadcast=True)
+        emit('progress', {'progress': math.floor(i / len(tweet_ids) * 100)}, broadcast=True)
     
     tweets_clip = concatenate_videoclips(video_clips, "compose", bg_color=None, padding=0).set_position(
         "center"
@@ -77,7 +78,7 @@ async def generate_video(link: str) -> None:
     x2 = c + half_w
     background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
     screenshot_width = int((1080 * 90) // 100)
-    tweets_clip = tweets_clip.resize(width=screenshot_width)
+    tweets_clip = tweets_clip.resize(width=screenshot_width - 25)
     tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
     final_video = CompositeVideoClip([background_clip, tweets_clip])
 
@@ -89,6 +90,7 @@ async def generate_video(link: str) -> None:
     
     final_video.write_videofile(f"{output_dir}/Fudgify-{id}.webm", fps=24, remove_temp=True, threads=multiprocessing.cpu_count(), preset="ultrafast", temp_audiofile_path=tempfile.gettempdir(), codec="libvpx", bitrate="50000k", audio_bitrate="128k")
     sys.stderr.write = original_stderr.write
+    emit('stage', {'stage': 'Cleaning up temporary files'}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/temp")
     emit('stage', {'stage': 'Video generated, ready to download'}, broadcast=True)
     emit('done', {'done': None}, broadcast=True)
