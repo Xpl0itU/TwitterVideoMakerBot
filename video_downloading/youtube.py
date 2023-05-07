@@ -33,7 +33,6 @@ def download_background() -> str:
     if os.path.exists(f"{get_user_data_dir()}/assets/backgrounds/{filename}"):
         return filename
 
-    print("Downloading the background video...")
     emit("stage", {"stage": "Downloading the background video"}, broadcast=True)
 
     ydl_opts = {
@@ -45,5 +44,4 @@ def download_background() -> str:
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download(link)
-    print("Background video downloaded successfully!")
     return filename

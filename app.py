@@ -63,16 +63,6 @@ def index():
         return redirect("/")
 
 
-@socketio.on("connect")
-def test_connect():
-    print("Client connected")
-
-
-@socketio.on("disconnect")
-def test_disconnect():
-    print("Client disconnected")
-
-
 @socketio.on("submit")
 def handle_submit(data):
     global link
@@ -89,7 +79,7 @@ def get_video():
             try:
                 os.remove(get_exported_video_path(link))
             except Exception as ex:
-                print(ex)
+                return ex
             return response
 
         return send_file(get_exported_video_path(link), as_attachment=True)

@@ -74,7 +74,6 @@ def check_ratelimit(response: Response) -> bool:
     if response.status_code == 429:
         try:
             time = int(response.headers["X-RateLimit-Reset"])
-            print(f"Ratelimit hit. Sleeping for {time - int(pytime.time())} seconds.")
             sleep_until(time)
             return False
         except KeyError:  # if the header is not present, we don't know how long to wait
