@@ -5,7 +5,7 @@ from flask_socketio import emit
 async def screenshot_tweet(page: Page, url: str, output_path: str) -> None:
     try:
         await page.goto(url)
-        await page.wait_for_load_state("networkidle")
+        await page.wait_for_load_state()
 
         views = page.locator("//div[contains(@class, 'r-1471scf')]")
         tweet = page.locator("(//article[@data-testid='tweet'])", has=views)
