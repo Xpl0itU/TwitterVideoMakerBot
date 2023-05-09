@@ -100,6 +100,7 @@ async def generate_video(link: str) -> None:
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
     background_clip = VideoFileClip(background_filename)
+    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
     start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
     background_clip = background_clip.subclip(start_time, end_time)
     background_clip = background_clip.without_audio()
@@ -111,7 +112,6 @@ async def generate_video(link: str) -> None:
     background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
     screenshot_width = int((1080 * 90) // 100)
     tweets_clip = tweets_clip.resize(width=screenshot_width - 50)
-    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
     final_video = CompositeVideoClip([background_clip, tweets_clip])
 
     logger = MoviePyLogger()
