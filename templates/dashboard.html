@@ -9,10 +9,13 @@
 
 <body>
   <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
-  <div>
-    <input type="text" id="text" placeholder="Enter your tweet's link here" size="50">
-    <button id="submit" type="button" class="blue-button">Submit</button>
-  </div>
+  <form id="form">
+    <div id="inputs">
+      <button type="button" class="green-button" onclick="addInput()">+</button>
+      <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
+      <button id="submit" type="submit" class="blue-button">Submit</button>
+    </div>
+  </form>
   <p class="small-text">Average wait time is 10 minutes.</p>
   <hr>
   <div id="progress-container" style="display:none">
@@ -30,8 +33,36 @@
       upload the video, visit the desktop website version of TikTok, Youtube or Instagram. Uploading it from your phone
       will not work. If you need help, please email fudgify@protonmail.com.</p>
   </div>
-
+  <script src="http://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    $('#form').submit(function (event) {
+      event.preventDefault();
+      var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
+      socket.emit('submit', inputs);
+    });
+    function addInput() {
+      var inputsDiv = $('#inputs');
+      var newInputDiv = $('<div>').attr({
+        'style': 'margin-top: 1%;'
+      });
+      var newInput = $('<input>').attr({
+        'type': 'text',
+        'name': 'input',
+        'placeholder': 'Enter your tweet\'s link here',
+        'size': '50'
+      });
+      var removeButton = $('<button>').text('-').addClass('green-button').attr({
+        'style': 'margin-right: 1%;'
+      }).click(function () {
+        $(this).parent().remove();
+      });
+      newInputDiv.append(removeButton);
+      newInputDiv.append(newInput);
+      inputsDiv.append(newInputDiv);
+    }
+  </script>
   <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
@@ -56,9 +87,6 @@
 
       // Show the progress container
       progressContainer.style.display = '';
-
-      // Send the text input to the server
-      socket.emit('submit', { text: textInput.value });
     });
 
     socket.on('done', function (data) {

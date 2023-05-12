@@ -25,7 +25,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, async_mode="threading")
 firebase = pyrebaselite.initialize_app(firebase_auth)
-link = str()
+links = list()
 is_loggedin = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
@@ -65,24 +65,25 @@ def index():
 
 @socketio.on("submit")
 def handle_submit(data):
-    global link
-    link = data["text"]
-    asyncio.run(generate_video(link))
+    global links
+    links = data
+    asyncio.run(generate_video(links))
 
 
 @app.route("/video")
 def get_video():
-    if len(link) and os.path.isfile(get_exported_video_path(link)):
+    global links
+    if len(links) and os.path.isfile(get_exported_video_path(links[0])):
 
         @after_this_request
         def delete_video(response):
             try:
-                os.remove(get_exported_video_path(link))
+                os.remove(get_exported_video_path(links[0]))
             except Exception as ex:
                 return ex
             return response
 
-        return send_file(get_exported_video_path(link), as_attachment=True)
+        return send_file(get_exported_video_path(links[0]), as_attachment=True)
     return "No video to download"
 
 

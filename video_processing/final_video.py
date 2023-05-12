@@ -26,6 +26,12 @@ from playwright.async_api import async_playwright
 import math
 
 
+def flatten(lst: list) -> list:
+    if isinstance(lst, list):
+        return [item for sublist in lst for item in flatten(sublist)]
+    return [lst]
+
+
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     random_time = randrange(180, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
@@ -39,20 +45,24 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     return image_clip.set_fps(1)
 
 
-async def generate_video(link: str) -> None:
-    id = re.search("/status/(\d+)", link).group(1)
-    username = re.search("twitter.com/(.*?)/status", link).group(1)
-    output_dir = f"{tempfile.gettempdir()}/results/{id}"
-    temp_dir = f"{tempfile.gettempdir()}/temp/{id}"
+async def generate_video(links: list) -> None:
+    ids = list()
+    for link in links:
+        ids.append(re.search("/status/(\d+)", link).group(1))
+    output_dir = f"{tempfile.gettempdir()}/results/{ids[0]}"
+    temp_dir = f"{tempfile.gettempdir()}/temp/{ids[0]}"
 
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    tweets_in_thread = get_thread_tweets(id)
-    # Fix for first tweet in thread not being added
-    first_tweet = get_tweet(int(id))
-    if tweets_in_thread[0] != first_tweet:
-        tweets_in_thread.insert(0, first_tweet)
+    tweets_in_threads = list()
+    for i in range(len(ids)):
+        tweets_in_threads.append(get_thread_tweets(ids[i]))
+        # Fix for first tweet in thread not being added
+        if tweets_in_threads[i][0].id != ids[i]:
+            tweets_in_threads[i].insert(0, [get_tweet(ids[i])])
+    # Flatten list of lists
+    tweets_in_threads = flatten(tweets_in_threads)
     video_clips = list()
     tweet_ids = list()
     emit(
@@ -63,17 +73,18 @@ async def generate_video(link: str) -> None:
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
         page = await browser.new_page()
-        for i in range(len(tweets_in_thread)):
-            tweet_ids.append(tweets_in_thread[i].id)
+        username = re.search("twitter.com/(.*?)/status", link).group(1)
+        for i in range(len(tweets_in_threads)):
+            tweet_ids.append(tweets_in_threads[i].id)
             thread_item_link = (
-                f"https://twitter.com/{username}/status/{tweets_in_thread[i].id}"
+                f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
             )
             await get_audio_video_from_tweet(
-                page, thread_item_link, tweets_in_thread[i].id, f"{temp_dir}"
+                page, thread_item_link, tweets_in_threads[i].id, f"{temp_dir}"
             )
             emit(
                 "progress",
-                {"progress": math.floor(i / len(tweets_in_thread) * 100)},
+                {"progress": math.floor(i / len(tweets_in_threads) * 100)},
                 broadcast=True,
             )
 
@@ -121,7 +132,7 @@ async def generate_video(link: str) -> None:
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
     final_video.write_videofile(
-        f"{output_dir}/Fudgify-{id}.webm",
+        f"{output_dir}/Fudgify-{ids[0]}.webm",
         fps=24,
         remove_temp=True,
         threads=multiprocessing.cpu_count(),
@@ -144,6 +155,7 @@ def get_exported_video_path(link: str) -> str:
 
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
+# https://twitter.com/jack/status/20?lang=en
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="TwitterVideoMakerBot",
