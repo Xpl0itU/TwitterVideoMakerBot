@@ -6,18 +6,20 @@ import multiprocessing
 from moviepy.editor import (
     AudioFileClip,
     ImageClip,
+    VideoClip,
     concatenate_videoclips,
     VideoFileClip,
     CompositeVideoClip,
     vfx,
 )
 import re
-from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_tweet
+from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_audio_from_tweet, get_tweet
 from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
 import tempfile
 from video_processing.user_data import get_user_data_dir
+from voice_recognition.speech import get_text_clip_from_audio
 
 import sys
 from flask_socketio import emit
@@ -44,8 +46,12 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     image_clip = image_clip.set_duration(audio_clip.duration)
     return image_clip.set_fps(1)
 
+# TODO: Show media if the tweet contains it
+def create_video_clip_with_text_only(audio_path: str) -> VideoClip:
+    return get_text_clip_from_audio(audio_path)
 
-async def generate_video(links: list) -> None:
+
+async def generate_video(links: list, text_only=False) -> None:
     ids = list()
     for link in links:
         ids.append(re.search("/status/(\d+)", link).group(1))
@@ -70,30 +76,45 @@ async def generate_video(links: list) -> None:
         {"stage": "Screenshotting tweets and generating the voice"},
         broadcast=True,
     )
-    async with async_playwright() as p:
-        browser = await p.firefox.launch(headless=True)
-        page = await browser.new_page()
-        username = re.search("twitter.com/(.*?)/status", link).group(1)
+    
+    if text_only:
         for i in range(len(tweets_in_threads)):
             tweet_ids.append(tweets_in_threads[i].id)
-            thread_item_link = (
-                f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
-            )
-            await get_audio_video_from_tweet(
-                page, thread_item_link, tweets_in_threads[i].id, f"{temp_dir}"
+            get_audio_from_tweet(
+                tweets_in_threads[i].id, temp_dir
             )
             emit(
                 "progress",
                 {"progress": math.floor(i / len(tweets_in_threads) * 100)},
                 broadcast=True,
             )
+    else:
+        async with async_playwright() as p:
+            browser = await p.firefox.launch(headless=True)
+            page = await browser.new_page()
+            username = re.search("twitter.com/(.*?)/status", link).group(1)
+            for i in range(len(tweets_in_threads)):
+                tweet_ids.append(tweets_in_threads[i].id)
+                thread_item_link = (
+                    f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
+                )
+                await get_audio_video_from_tweet(
+                    page, thread_item_link, tweets_in_threads[i].id, temp_dir
+                )
+                emit(
+                    "progress",
+                    {"progress": math.floor(i / len(tweets_in_threads) * 100)},
+                    broadcast=True,
+                )
 
-        await browser.close()
+            await browser.close()
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     for i in range(len(tweet_ids)):
         video_clips.append(
-            create_video_clip(
+            create_video_clip_with_text_only(
+                f"{temp_dir}/{tweet_ids[i]}.mp3"
+            ) if text_only else create_video_clip(
                 f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"
             )
         )

@@ -25,17 +25,17 @@ def transcribe_audio_file(file_path: str):
 
     return word_timings, clip
 
-if __name__ == "__main__":
-    word_times, audio = transcribe_audio_file('20.mp3')
+def get_text_clip_from_audio(audio_path: str) -> VideoClip:
+    word_times, audio = transcribe_audio_file(audio_path)
 
     subclips = list()
     for word, start_time, end_time in word_times:
-        subclip = TextClip(word, fontsize=30, color='white').set_fps(24)
-        subclip = subclip.set_start(start_time)
-        subclip = subclip.set_end(end_time * 24 * 4)
-        subclips.append(subclip)
+        if word != "<s>":
+            subclip = TextClip(word, fontsize=30, color='white').set_fps(24)
+            subclip = subclip.set_start(start_time)
+            subclip = subclip.set_end(end_time * 24 * 4)
+            subclips.append(subclip)
 
     final_clip = concatenate_videoclips(subclips, method='compose')
     final_clip = final_clip.set_audio(audio)
-    final_clip = final_clip.set_duration(audio.duration)
-    final_clip.write_videofile('speech.webm')
+    return final_clip.set_duration(audio.duration)
