@@ -34,7 +34,7 @@ def get_sentences_from_story(story):
 
             if i == len(buffer) - 1:
                 sentences.append(buffer)
-                buffer = ""
+                buffer = str()
                 break
             elif i >= (preferred_len - 1) and (
                 last_stop or last_parenthesis or last_comma or last_space
@@ -70,7 +70,7 @@ def get_text_clip_from_audio(text: str, id: int) -> VideoClip:
     for i in range(len(sentences)):
         get_tts(sentences[i], f"{tempfile.gettempdir()}/temp/tts", f"{id}-{i}")
         audio = AudioFileClip(f"{tempfile.gettempdir()}/temp/tts/{id}-{i}.mp3")
-        subclip = TextClip(sentences[i], fontsize=50, size=(1080, 1920), color="white", method="caption", align="center").set_fps(1)
+        subclip = TextClip(sentences[i], fontsize=75, size=(1080, 1920), color="white", method="caption", align="center").set_fps(1)
         subclip = subclip.set_duration(audio.duration)
         subclip = subclip.set_audio(audio)
         subclips.append(subclip)
