@@ -19,7 +19,7 @@ from typing import Tuple
 from video_downloading.youtube import download_background
 import tempfile
 from video_processing.user_data import get_user_data_dir
-from voice_recognition.speech import get_text_clip_from_audio
+from text_splitter.splitter import get_text_clip_from_audio
 
 import sys
 from flask_socketio import emit
@@ -47,11 +47,11 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     return image_clip.set_fps(1)
 
 # TODO: Show media if the tweet contains it
-def create_video_clip_with_text_only(audio_path: str) -> VideoClip:
-    return get_text_clip_from_audio(audio_path)
+def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
+    return get_text_clip_from_audio(text, id)
 
 
-async def generate_video(links: list, text_only=False) -> None:
+async def generate_video(links: list, text_only=True) -> None:
     ids = list()
     for link in links:
         ids.append(re.search("/status/(\d+)", link).group(1))
@@ -76,13 +76,15 @@ async def generate_video(links: list, text_only=False) -> None:
         {"stage": "Screenshotting tweets and generating the voice"},
         broadcast=True,
     )
+
+    tweets_text = list()
     
     if text_only:
         for i in range(len(tweets_in_threads)):
             tweet_ids.append(tweets_in_threads[i].id)
-            get_audio_from_tweet(
+            tweets_text.append(get_audio_from_tweet(
                 tweets_in_threads[i].id, temp_dir
-            )
+            ))
             emit(
                 "progress",
                 {"progress": math.floor(i / len(tweets_in_threads) * 100)},
@@ -113,7 +115,7 @@ async def generate_video(links: list, text_only=False) -> None:
     for i in range(len(tweet_ids)):
         video_clips.append(
             create_video_clip_with_text_only(
-                f"{temp_dir}/{tweet_ids[i]}.mp3"
+                tweets_text[i], tweet_ids[i]
             ) if text_only else create_video_clip(
                 f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"
             )

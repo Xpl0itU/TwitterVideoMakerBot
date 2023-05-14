@@ -31,11 +31,12 @@ def get_thread_tweets(id: int) -> list:
     return tweet.threads
 
 
-def get_audio_from_tweet(id: int, output: str) -> None:
+def get_audio_from_tweet(id: int, output: str) -> str:
     tweet = app.tweet_detail(id)
     tweet_text = cleanup_tweet_text(tweet.text)
     engine = StreamlabsPolly()
     engine.run(tweet_text, f"{output}/{id}.mp3")
+    return tweet_text
 
 
 async def get_audio_video_from_tweet(

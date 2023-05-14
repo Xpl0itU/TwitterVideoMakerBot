@@ -59,32 +59,34 @@ def login():
 def index():
     if is_loggedin:
         return render_template("dashboard.html")
-    else:
-        return redirect("/")
+    return redirect("/")
 
 
 @socketio.on("submit")
 def handle_submit(data):
-    global links
-    links = data
-    asyncio.run(generate_video(links))
+    if is_loggedin:
+        global links
+        links = data
+        asyncio.run(generate_video(links))
 
 
 @app.route("/video")
 def get_video():
-    global links
-    if len(links) and os.path.isfile(get_exported_video_path(links[0])):
+    if is_loggedin:
+        global links
+        if len(links) and os.path.isfile(get_exported_video_path(links[0])):
 
-        @after_this_request
-        def delete_video(response):
-            try:
-                os.remove(get_exported_video_path(links[0]))
-            except Exception as ex:
-                return ex
-            return response
+            @after_this_request
+            def delete_video(response):
+                try:
+                    os.remove(get_exported_video_path(links[0]))
+                except Exception as ex:
+                    return ex
+                return response
 
-        return send_file(get_exported_video_path(links[0]), as_attachment=True)
-    return "No video to download"
+            return send_file(get_exported_video_path(links[0]), as_attachment=True)
+        return "No video to download"
+    return redirect("/")
 
 
 if __name__ == "__main__":
