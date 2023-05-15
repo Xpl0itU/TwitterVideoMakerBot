@@ -27,7 +27,7 @@ class TweetManager:
         x = pp.remove_rt(x)
         x = pp.remove_accented_chars(x)
         return x
-    
+
     @staticmethod
     async def screenshot_tweet(page: Page, url: str, output_path: str) -> bool:
         """
@@ -52,7 +52,8 @@ class TweetManager:
             elements_to_remove = [banner, thread_banner]
             for element in elements_to_remove:
                 await page.evaluate(
-                    'element => element.setAttribute("style", "display: none;")', element
+                    'element => element.setAttribute("style", "display: none;")',
+                    element,
                 )
 
             await tweet.screenshot(path=output_path)
@@ -64,14 +65,14 @@ class TweetManager:
                 broadcast=True,
             )
             return False
-    
+
     def get_tweet(self) -> Tweet:
         """
         Get tweet
         :return: Tweet, tweet
         """
         return app.tweet_detail(self.id)
-    
+
     def get_thread_tweets(self) -> list:
         """
         Get thread tweets
@@ -81,7 +82,7 @@ class TweetManager:
         if len(tweet.threads) == 0:
             return [tweet]
         return tweet.threads
-    
+
     def get_audio_from_tweet(self, output: str) -> str:
         """
         Get audio from tweet
@@ -92,7 +93,7 @@ class TweetManager:
         engine = StreamlabsPolly()
         engine.run(tweet_text, f"{output}/{self.id}.mp3")
         return tweet_text
-    
+
     async def get_audio_video_from_tweet(
         self, page: Page, link: str, output: str
     ) -> bool:
@@ -100,5 +101,5 @@ class TweetManager:
         Get audio and video from tweet
         :return: bool, True if success, False if fail.
         """
-        self.get_audio_from_tweet(self.id, output)
+        self.get_audio_from_tweet(output)
         return await self.screenshot_tweet(page, link, f"{output}/{self.id}.png")
