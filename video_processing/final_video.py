@@ -55,7 +55,8 @@ async def generate_video(links: list, text_only=False) -> None:
     """
     Generates a video from a list of links to twitter statuses.
     """
-    if len(links) == 0:
+    links = list(filter(lambda x: x != "", links))
+    if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
             "error",
             {"error": "No links provided"},
