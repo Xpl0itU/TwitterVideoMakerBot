@@ -58,8 +58,8 @@ async def generate_video(links: list, text_only=False) -> None:
     links = list(filter(lambda x: x != "", links))
     if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
-            "error",
-            {"error": "No links provided"},
+            "stage",
+            {"stage": "Error: No links provided, please reload the page and try again"},
             broadcast=True,
         )
         return
