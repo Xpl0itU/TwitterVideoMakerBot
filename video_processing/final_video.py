@@ -52,6 +52,37 @@ def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
 
 
 async def generate_video(links: list, text_only=False) -> None:
+    """
+    Generates a video from a list of links to twitter statuses.
+    """
+    if len(links) == 0:
+        emit(
+            "error",
+            {"error": "No links provided"},
+            broadcast=True,
+        )
+        return
+    link = links[0]
+    if not re.search("twitter.com/(.*?)/status", link):
+        emit(
+            "error",
+            {"error": "Invalid link provided"},
+            broadcast=True,
+        )
+        return
+    if not re.search("twitter.com/(.*?)/status/(\d+)", link):
+        emit(
+            "error",
+            {"error": "Invalid link provided"},
+            broadcast=True,
+        )
+        return
+    if not re.search("twitter.com/(.*?)/status/(\d+)/photo", link):
+        emit(
+            "error",
+            {"error": "Invalid link provided"},
+        )
+        return
     ids = list()
     for link in links:
         ids.append(re.search("/status/(\d+)", link).group(1))

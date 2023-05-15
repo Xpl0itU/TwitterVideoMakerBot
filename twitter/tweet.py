@@ -10,6 +10,10 @@ app = Twitter()
 
 
 def cleanup_tweet_text(x: str) -> str:
+    """
+    Cleanup tweet text
+    :return: str, cleaned up text
+    """
     x = x.lower()
     x = pp.cont_to_exp(x)
     x = pp.remove_emails(x)
@@ -21,10 +25,18 @@ def cleanup_tweet_text(x: str) -> str:
 
 
 def get_tweet(id: int) -> Tweet:
+    """
+    Get tweet
+    :return: Tweet, tweet
+    """
     return app.tweet_detail(id)
 
 
 def get_thread_tweets(id: int) -> list:
+    """
+    Get thread tweets
+    :return: list, list of tweets
+    """
     tweet = app.tweet_detail(id)
     if len(tweet.threads) == 0:
         return [tweet]
@@ -32,6 +44,10 @@ def get_thread_tweets(id: int) -> list:
 
 
 def get_audio_from_tweet(id: int, output: str) -> str:
+    """
+    Get audio from tweet
+    :return: str, text of the tweet
+    """
     tweet = app.tweet_detail(id)
     tweet_text = cleanup_tweet_text(tweet.text)
     engine = StreamlabsPolly()
@@ -42,5 +58,9 @@ def get_audio_from_tweet(id: int, output: str) -> str:
 async def get_audio_video_from_tweet(
     page: Page, link: str, id: int, output: str
 ) -> bool:
+    """
+    Get audio and video from tweet
+    :return: bool, True if success, False if fail.
+    """
     get_audio_from_tweet(id, output)
     return await screenshot_tweet(page, link, f"{output}/{id}.png")

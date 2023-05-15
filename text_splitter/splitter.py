@@ -6,14 +6,23 @@ PARENTHESIS = ["(", ")"]
 END_MARKS = [".", "!", "?"]
 
 
-def add_full_stop(text):
+def add_full_stop(text: str) -> str:
+    """
+    Adds a full stop to the end of the text if it is missing.
+    :return: str, The text with a full stop at the end.
+    """
     if not text == "":
         if not text[-1] in END_MARKS:
             text += "."
     return text
 
 
-def get_sentences_from_story(story):
+def get_sentences_from_story(story: str) -> list:
+    """
+    Splits a story into sentences.
+    :param story: str, The story to split.
+    :return: list, The list of sentences.
+    """
     preferred_len = 120
     text = add_full_stop(story.strip())
 
@@ -58,12 +67,25 @@ def get_sentences_from_story(story):
     return [sentence.strip() for sentence in sentences]
 
 
-def get_tts(text: str, output: str, filename: str):
+def get_tts(text: str, output: str, filename: str) -> None:
+    """
+    Synthesize text to an mp3 file.
+    :param text: str, The text to synthesize.
+    :param output: str, The output directory.
+    :param filename: str, The filename of the mp3 file.
+    :return: None
+    """
     engine = StreamlabsPolly()
     engine.run(text, f"{output}/{filename}.mp3")
 
 
 def get_text_clip_from_audio(text: str, id: int) -> VideoClip:
+    """
+    Creates a video clip from a story.
+    :param text: str, The story to create a video clip from.
+    :param id: int, The id of the story.
+    :return: VideoClip, The video clip.
+    """
     os.makedirs(f"{tempfile.gettempdir()}/temp/tts", exist_ok=True)
     sentences = get_sentences_from_story(text)
     subclips = list()

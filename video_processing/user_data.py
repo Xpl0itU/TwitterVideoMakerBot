@@ -6,6 +6,12 @@ from typing import Union, List, Tuple
 def get_user_data_dir(
     appending_paths: Union[str, List[str], Tuple[str, ...]] = "Fudgify"
 ) -> pathlib.Path:
+    """
+    Get the user data directory.
+
+    :param appending_paths: Path to append to the user data directory.
+    :return: Path, The user data directory.
+    """
     home = pathlib.Path.home()
 
     system_paths = {

@@ -27,6 +27,10 @@ def report_progress(d) -> None:
 
 
 def download_background() -> str:
+    """
+    Downloads a random background video
+    :return: str, the name of the file with the extension
+    """
     filename, link = random.choice(list(videos.items()))
     filename += ".mp4"
     os.makedirs(f"{get_user_data_dir()}/assets/backgrounds/", exist_ok=True)
