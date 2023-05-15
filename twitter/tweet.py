@@ -41,6 +41,6 @@ def get_audio_from_tweet(id: int, output: str) -> str:
 
 async def get_audio_video_from_tweet(
     page: Page, link: str, id: int, output: str
-) -> None:
-    await screenshot_tweet(page, link, f"{output}/{id}.png")
+) -> bool:
     get_audio_from_tweet(id, output)
+    return await screenshot_tweet(page, link, f"{output}/{id}.png")

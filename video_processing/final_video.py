@@ -100,9 +100,10 @@ async def generate_video(links: list, text_only=False) -> None:
                 thread_item_link = (
                     f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
                 )
-                await get_audio_video_from_tweet(
+                if await get_audio_video_from_tweet(
                     page, thread_item_link, tweets_in_threads[i].id, temp_dir
-                )
+                ) is False:
+                    return
                 emit(
                     "progress",
                     {"progress": math.floor(i / len(tweets_in_threads) * 100)},
