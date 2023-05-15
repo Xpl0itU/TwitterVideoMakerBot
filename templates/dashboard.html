@@ -14,7 +14,7 @@
       <button type="button" class="green-button" onclick="addInput()">+</button>
       <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
       <button id="submit" type="submit" class="blue-button">Submit</button>
-      <input id="text-only" type="checkbox"/>
+      <input id="text-only" type="checkbox" />
       <label for="text-only" id="text-only-label">Text only</label>
     </div>
   </form>
@@ -93,7 +93,7 @@
     });
 
     textOnlyCheckbox.addEventListener('click', function () {
-      socket.emit('set_text_only_mode', { text: textOnlyCheckbox.checked});
+      socket.emit('set_text_only_mode', { text: textOnlyCheckbox.checked });
     });
 
     socket.on('done', function (data) {

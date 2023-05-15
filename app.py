@@ -70,6 +70,7 @@ def handle_submit(data):
         links = data
         asyncio.run(generate_video(links, text_only=text_only_mode))
 
+
 @socketio.on("set_text_only_mode")
 def handle_set_text_only_mode(data):
     global text_only_mode
