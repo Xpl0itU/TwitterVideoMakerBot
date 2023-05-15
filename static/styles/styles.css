@@ -51,3 +51,12 @@ input[type=password] {
     font-size: small;
     margin: 0;
 }
+
+#inputs {
+    overflow: visible;
+    white-space: nowrap;
+}
+
+#text-only-label {
+    font-size: small;
+}

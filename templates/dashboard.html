@@ -14,6 +14,8 @@
       <button type="button" class="green-button" onclick="addInput()">+</button>
       <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
       <button id="submit" type="submit" class="blue-button">Submit</button>
+      <input id="text-only" type="checkbox"/>
+      <label for="text-only" id="text-only-label">Text only</label>
     </div>
   </form>
   <p class="small-text">Average wait time is 10 minutes.</p>
@@ -72,6 +74,7 @@
     var stage = document.getElementById('stage');
     var progressBar = document.getElementById('progress-bar');
     var resultsContainer = document.getElementById('results-container');
+    var textOnlyCheckbox = document.getElementById('text-only');
 
     submitButton.addEventListener('click', function () {
       // Clear the progress bar
@@ -87,6 +90,10 @@
 
       // Show the progress container
       progressContainer.style.display = '';
+    });
+
+    textOnlyCheckbox.addEventListener('click', function () {
+      socket.emit('set_text_only_mode', { text: textOnlyCheckbox.checked});
     });
 
     socket.on('done', function (data) {

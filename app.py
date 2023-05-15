@@ -29,6 +29,7 @@ links = list()
 is_loggedin = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
+text_only_mode = False
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -67,7 +68,12 @@ def handle_submit(data):
     if is_loggedin:
         global links
         links = data
-        asyncio.run(generate_video(links))
+        asyncio.run(generate_video(links, text_only=text_only_mode))
+
+@socketio.on("set_text_only_mode")
+def handle_set_text_only_mode(data):
+    global text_only_mode
+    text_only_mode = data["text"]
 
 
 @app.route("/video")
