@@ -13,7 +13,7 @@ from moviepy.editor import (
     vfx,
 )
 import re
-from twitter.tweet import get_thread_tweets, get_audio_video_from_tweet, get_audio_from_tweet, get_tweet
+from twitter.tweet import TweetManager
 from random import randrange
 from typing import Tuple
 from video_downloading.youtube import download_background
@@ -74,10 +74,11 @@ async def generate_video(links: list, text_only=False) -> None:
 
     tweets_in_threads = list()
     for i in range(len(ids)):
-        tweets_in_threads.append(get_thread_tweets(ids[i]))
+        tweet = TweetManager(ids[i])
+        tweets_in_threads.append(tweet.get_thread_tweets())
         # Fix for first tweet in thread not being added
         if tweets_in_threads[i][0].id != ids[i]:
-            tweets_in_threads[i].insert(0, [get_tweet(ids[i])])
+            tweets_in_threads[i].insert(0, [tweet.get_tweet()])
     # Flatten list of lists
     tweets_in_threads = flatten(tweets_in_threads)
     video_clips = list()
@@ -92,9 +93,10 @@ async def generate_video(links: list, text_only=False) -> None:
     
     if text_only:
         for i in range(len(tweets_in_threads)):
+            tweet = TweetManager(tweets_in_threads[i].id)
             tweet_ids.append(tweets_in_threads[i].id)
-            tweets_text.append(get_audio_from_tweet(
-                tweets_in_threads[i].id, temp_dir
+            tweets_text.append(tweet.get_audio_from_tweet(
+                temp_dir
             ))
             emit(
                 "progress",
@@ -107,12 +109,13 @@ async def generate_video(links: list, text_only=False) -> None:
             page = await browser.new_page()
             username = re.search("twitter.com/(.*?)/status", link).group(1)
             for i in range(len(tweets_in_threads)):
+                tweet = TweetManager(tweets_in_threads[i].id)
                 tweet_ids.append(tweets_in_threads[i].id)
                 thread_item_link = (
                     f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
                 )
-                if await get_audio_video_from_tweet(
-                    page, thread_item_link, tweets_in_threads[i].id, temp_dir
+                if await tweet.get_audio_video_from_tweet(
+                    page, thread_item_link, temp_dir
                 ) is False:
                     return
                 emit(
