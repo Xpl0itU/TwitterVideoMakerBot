@@ -51,7 +51,7 @@ def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
     return get_text_clip_from_audio(text, id)
 
 
-async def generate_video(links: list, text_only=True) -> None:
+async def generate_video(links: list, text_only=False) -> None:
     ids = list()
     for link in links:
         ids.append(re.search("/status/(\d+)", link).group(1))
