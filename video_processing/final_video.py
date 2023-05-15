@@ -62,27 +62,6 @@ async def generate_video(links: list, text_only=False) -> None:
             broadcast=True,
         )
         return
-    link = links[0]
-    if not re.search("twitter.com/(.*?)/status", link):
-        emit(
-            "error",
-            {"error": "Invalid link provided"},
-            broadcast=True,
-        )
-        return
-    if not re.search("twitter.com/(.*?)/status/(\d+)", link):
-        emit(
-            "error",
-            {"error": "Invalid link provided"},
-            broadcast=True,
-        )
-        return
-    if not re.search("twitter.com/(.*?)/status/(\d+)/photo", link):
-        emit(
-            "error",
-            {"error": "Invalid link provided"},
-        )
-        return
     ids = list()
     for link in links:
         ids.append(re.search("/status/(\d+)", link).group(1))
