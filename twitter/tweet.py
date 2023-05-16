@@ -20,7 +20,7 @@ class TweetManager:
         :return: str, cleaned up text
         """
         x = x.lower()
-        x = pp.cont_to_exp(x)
+        # x = pp.cont_to_exp(x)
         x = pp.remove_emails(x)
         x = pp.remove_urls(x)
         x = pp.remove_html_tags(x)
