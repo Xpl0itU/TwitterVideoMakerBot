@@ -75,9 +75,8 @@ async def generate_video(links: list, text_only=False) -> None:
     tweets_in_threads = flatten(
         list(map(lambda x: TweetManager(x).get_thread_tweets(), ids))
     )
+    tweet_ids = list(map(lambda x: x.id, tweets_in_threads))
     video_clips = list()
-    tweet_ids = list()
-    tweets_text = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
@@ -85,11 +84,8 @@ async def generate_video(links: list, text_only=False) -> None:
     )
 
     if text_only:
+        tweets_text = list(map(lambda x: TweetManager(x).get_audio_from_tweet(temp_dir), tweet_ids))
         for i in range(len(tweets_in_threads)):
-            tweet_ids.append(tweets_in_threads[i].id)
-            tweets_text.append(
-                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
-            )
             emit(
                 "progress",
                 {"progress": math.floor(i / len(tweets_in_threads) * 100)},
@@ -100,7 +96,6 @@ async def generate_video(links: list, text_only=False) -> None:
             browser = await p.firefox.launch(headless=True)
             page = await browser.new_page()
             for i in range(len(tweets_in_threads)):
-                tweet_ids.append(tweets_in_threads[i].id)
                 # Twitter doesn't care about usernames
                 thread_item_link = (
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
