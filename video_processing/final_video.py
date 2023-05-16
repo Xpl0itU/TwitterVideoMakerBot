@@ -47,6 +47,7 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
     image_clip = image_clip.set_duration(audio_clip.duration)
     return image_clip.set_fps(1)
 
+
 # TODO: Show media if the tweet contains it
 def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
     return get_text_clip_from_audio(text, id)
@@ -71,7 +72,9 @@ async def generate_video(links: list, text_only=False) -> None:
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    tweets_in_threads = flatten(list(map(lambda x: TweetManager(x).get_thread_tweets(), ids)))
+    tweets_in_threads = flatten(
+        list(map(lambda x: TweetManager(x).get_thread_tweets(), ids))
+    )
     video_clips = list()
     tweet_ids = list()
     tweets_text = list()
@@ -80,14 +83,13 @@ async def generate_video(links: list, text_only=False) -> None:
         {"stage": "Screenshotting tweets and generating the voice"},
         broadcast=True,
     )
-    
+
     if text_only:
         for i in range(len(tweets_in_threads)):
-            tweet = TweetManager(tweets_in_threads[i].id)
             tweet_ids.append(tweets_in_threads[i].id)
-            tweets_text.append(tweet.get_audio_from_tweet(
-                temp_dir
-            ))
+            tweets_text.append(
+                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
+            )
             emit(
                 "progress",
                 {"progress": math.floor(i / len(tweets_in_threads) * 100)},
@@ -98,15 +100,17 @@ async def generate_video(links: list, text_only=False) -> None:
             browser = await p.firefox.launch(headless=True)
             page = await browser.new_page()
             for i in range(len(tweets_in_threads)):
-                tweet = TweetManager(tweets_in_threads[i].id)
                 tweet_ids.append(tweets_in_threads[i].id)
                 # Twitter doesn't care about usernames
                 thread_item_link = (
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
-                if await tweet.get_audio_video_from_tweet(
-                    page, thread_item_link, temp_dir
-                ) is False:
+                if (
+                    await TweetManager(
+                        tweets_in_threads[i].id
+                    ).get_audio_video_from_tweet(page, thread_item_link, temp_dir)
+                    is False
+                ):
                     return
                 emit(
                     "progress",
@@ -119,9 +123,9 @@ async def generate_video(links: list, text_only=False) -> None:
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     for i in range(len(tweet_ids)):
         video_clips.append(
-            create_video_clip_with_text_only(
-                tweets_text[i], tweet_ids[i]
-            ) if text_only else create_video_clip(
+            create_video_clip_with_text_only(tweets_text[i], tweet_ids[i])
+            if text_only
+            else create_video_clip(
                 f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"
             )
         )
