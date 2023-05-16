@@ -49,8 +49,7 @@ class TweetManager:
                 "//div[@id='react-root']/div[1]/div[1]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]"
             )
 
-            elements_to_remove = [banner, thread_banner]
-            for element in elements_to_remove:
+            for element in [banner, thread_banner]:
                 await page.evaluate(
                     'element => element.setAttribute("style", "display: none;")',
                     element,
@@ -61,7 +60,7 @@ class TweetManager:
         except PlaywrightTimeoutError:
             emit(
                 "stage",
-                {"stage": "Error while screenshotting tweet, please try again"},
+                {"stage": "Error while screenshotting tweet, please reload the page and try again"},
                 broadcast=True,
             )
             return False
@@ -81,7 +80,11 @@ class TweetManager:
         tweet = app.tweet_detail(self.id)
         if len(tweet.threads) == 0:
             return [tweet]
-        return tweet.threads
+        thread_tweets = tweet.threads
+        # Fix for first tweet in thread not being added
+        if thread_tweets[0].id != tweet.id:
+            thread_tweets.insert(0, tweet)
+        return thread_tweets
 
     def get_audio_from_tweet(self, output: str) -> str:
         """

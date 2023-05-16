@@ -70,15 +70,7 @@ async def generate_video(links: list, text_only=False) -> None:
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    tweets_in_threads = list()
-    for i in range(len(ids)):
-        tweet = TweetManager(ids[i])
-        tweets_in_threads.append(tweet.get_thread_tweets())
-        # Fix for first tweet in thread not being added
-        if tweets_in_threads[i][0].id != ids[i]:
-            tweets_in_threads[i].insert(0, [tweet.get_tweet()])
-    # Flatten list of lists
-    tweets_in_threads = flatten(tweets_in_threads)
+    tweets_in_threads = flatten(list(map(lambda x: TweetManager(x).get_thread_tweets(), ids)))
     video_clips = list()
     tweet_ids = list()
     emit(
