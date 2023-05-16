@@ -63,9 +63,7 @@ async def generate_video(links: list, text_only=False) -> None:
             broadcast=True,
         )
         return
-    ids = list()
-    for link in links:
-        ids.append(re.search("/status/(\d+)", link).group(1))
+    ids = list(map(lambda x: re.search("/status/(\d+)", x).group(1), links))
     output_dir = f"{tempfile.gettempdir()}/results/{ids[0]}"
     temp_dir = f"{tempfile.gettempdir()}/temp/{ids[0]}"
 
@@ -107,12 +105,12 @@ async def generate_video(links: list, text_only=False) -> None:
         async with async_playwright() as p:
             browser = await p.firefox.launch(headless=True)
             page = await browser.new_page()
-            username = re.search("twitter.com/(.*?)/status", link).group(1)
             for i in range(len(tweets_in_threads)):
                 tweet = TweetManager(tweets_in_threads[i].id)
                 tweet_ids.append(tweets_in_threads[i].id)
+                # Twitter doesn't care about usernames
                 thread_item_link = (
-                    f"https://twitter.com/{username}/status/{tweets_in_threads[i].id}"
+                    f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
                 if await tweet.get_audio_video_from_tweet(
                     page, thread_item_link, temp_dir
@@ -144,7 +142,6 @@ async def generate_video(links: list, text_only=False) -> None:
     tweets_clip = concatenate_videoclips(
         video_clips, "compose", bg_color=None, padding=0
     ).set_position("center")
-    tweets_clip = tweets_clip.set_position("center")
     background_filename = (
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
