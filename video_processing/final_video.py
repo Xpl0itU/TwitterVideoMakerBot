@@ -27,11 +27,12 @@ from video_processing.logger import MoviePyLogger
 from playwright.async_api import async_playwright
 import math
 
+import operator
+from functools import reduce
+
 
 def flatten(lst: list) -> list:
-    if isinstance(lst, list):
-        return [item for sublist in lst for item in flatten(sublist)]
-    return [lst]
+    return reduce(operator.add, lst)
 
 
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
@@ -73,13 +74,12 @@ async def generate_video(links: list, text_only=False) -> None:
     tweets_in_threads = flatten(list(map(lambda x: TweetManager(x).get_thread_tweets(), ids)))
     video_clips = list()
     tweet_ids = list()
+    tweets_text = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
         broadcast=True,
     )
-
-    tweets_text = list()
     
     if text_only:
         for i in range(len(tweets_in_threads)):
