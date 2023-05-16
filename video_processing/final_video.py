@@ -85,12 +85,6 @@ async def generate_video(links: list, text_only=False) -> None:
 
     if text_only:
         tweets_text = list(map(lambda x: TweetManager(x).get_audio_from_tweet(temp_dir), tweet_ids))
-        for i in range(len(tweets_in_threads)):
-            emit(
-                "progress",
-                {"progress": math.floor(i / len(tweets_in_threads) * 100)},
-                broadcast=True,
-            )
     else:
         async with async_playwright() as p:
             browser = await p.firefox.launch(headless=True)
