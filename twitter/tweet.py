@@ -59,7 +59,9 @@ class TweetManager:
         except PlaywrightTimeoutError:
             emit(
                 "stage",
-                {"stage": "Error while screenshotting tweet, please reload the page and try again"},
+                {
+                    "stage": "Error while screenshotting tweet, please reload the page and try again"
+                },
                 broadcast=True,
             )
             return False
