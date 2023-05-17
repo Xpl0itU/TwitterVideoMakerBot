@@ -59,7 +59,7 @@ def login():
 @app.route("/dashboard")
 def index():
     if is_loggedin:
-        return render_template("dashboard.html")
+        return render_template("dashboard.html", checked="checked" if text_only_mode else "")
     return redirect("/")
 
 
