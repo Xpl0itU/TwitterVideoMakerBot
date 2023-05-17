@@ -79,19 +79,19 @@ def get_tts(text: str, output: str, filename: str) -> None:
     engine.run(text, f"{output}/{filename}.mp3")
 
 
-def get_text_clip_from_audio(text: str, id: int) -> VideoClip:
+def get_text_clip_for_tweet(text: str, id: int, audio_path: str) -> VideoClip:
     """
     Creates a video clip from a story.
     :param text: str, The story to create a video clip from.
     :param id: int, The id of the story.
     :return: VideoClip, The video clip.
     """
-    os.makedirs(f"{tempfile.gettempdir()}/temp/tts", exist_ok=True)
+    os.makedirs(f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", exist_ok=True)
     sentences = get_sentences_from_story(text)
     subclips = list()
     for i in range(len(sentences)):
-        get_tts(sentences[i], f"{tempfile.gettempdir()}/temp/tts", f"{id}-{i}")
-        audio = AudioFileClip(f"{tempfile.gettempdir()}/temp/tts/{id}-{i}.mp3")
+        get_tts(sentences[i], f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", f"{id}-{i}")
+        audio = AudioFileClip(f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts/{id}-{i}.mp3")
         subclip = TextClip(
             sentences[i],
             fontsize=75,
@@ -101,8 +101,8 @@ def get_text_clip_from_audio(text: str, id: int) -> VideoClip:
             align="center",
         ).set_fps(1)
         subclip = subclip.set_duration(audio.duration)
-        subclip = subclip.set_audio(audio)
         subclips.append(subclip)
 
+    audio = AudioFileClip(audio_path)
     final_clip = concatenate_videoclips(subclips, method="compose")
-    return final_clip
+    return final_clip.set_audio(audio).set_duration(audio.duration)

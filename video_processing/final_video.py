@@ -1,7 +1,5 @@
-import asyncio
 import os
 import shutil
-import argparse
 import multiprocessing
 from moviepy.editor import (
     AudioFileClip,
@@ -19,7 +17,7 @@ from typing import Tuple
 from video_downloading.youtube import download_background
 import tempfile
 from video_processing.user_data import get_user_data_dir
-from text_splitter.splitter import get_text_clip_from_audio
+from text_splitter.splitter import get_text_clip_for_tweet
 
 import sys
 from flask_socketio import emit
@@ -49,8 +47,8 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
 
 
 # TODO: Show media if the tweet contains it
-def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
-    return get_text_clip_from_audio(text, id)
+def create_video_clip_with_text_only(text: str, id: int, audio_path: str) -> VideoClip:
+    return get_text_clip_for_tweet(text, id, audio_path)
 
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
@@ -75,8 +73,8 @@ async def generate_video(links: list, text_only=False) -> None:
             )
         )
     )
-    output_dir = f"{tempfile.gettempdir()}/results/{tweets_in_threads[0].id}"
-    temp_dir = f"{tempfile.gettempdir()}/temp/{tweets_in_threads[0].id}"
+    output_dir = f"{tempfile.gettempdir()}/Fudgify/results/{tweets_in_threads[0].id}"
+    temp_dir = f"{tempfile.gettempdir()}/Fudgify/temp/{tweets_in_threads[0].id}"
 
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
@@ -122,7 +120,11 @@ async def generate_video(links: list, text_only=False) -> None:
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     for i in range(len(tweets_in_threads)):
         video_clips.append(
-            create_video_clip_with_text_only(tweets_text[i], tweets_in_threads[i].id)
+            create_video_clip_with_text_only(
+                tweets_text[i],
+                tweets_in_threads[i].id,
+                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
+            )
             if text_only
             else create_video_clip(
                 f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
@@ -177,11 +179,11 @@ async def generate_video(links: list, text_only=False) -> None:
     )
     sys.stderr.write = original_stderr.write
     emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
-    shutil.rmtree(f"{tempfile.gettempdir()}/temp")
+    shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
     emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
     emit("done", {"done": None}, broadcast=True)
 
 
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.webm"
+    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.webm"

@@ -27,9 +27,9 @@ socketio = SocketIO(app, async_mode="threading")
 firebase = pyrebaselite.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False
+text_only_mode = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
-text_only_mode = False
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -59,7 +59,9 @@ def login():
 @app.route("/dashboard")
 def index():
     if is_loggedin:
-        return render_template("dashboard.html", checked="checked" if text_only_mode else "")
+        return render_template(
+            "dashboard.html", checked="checked" if text_only_mode else ""
+        )
     return redirect("/")
 
 
@@ -71,29 +73,29 @@ def handle_submit(data):
         asyncio.run(generate_video(links, text_only=text_only_mode))
 
 
-@socketio.on("set_text_only_mode")
-def handle_set_text_only_mode(data):
-    global text_only_mode
-    text_only_mode = data["text"]
-
-
 @app.route("/video")
 def get_video():
     if is_loggedin:
-        global links
-        if len(links) and os.path.isfile(get_exported_video_path(links[0])):
+        exported_video_path = get_exported_video_path(links[0])
+        if len(links) and os.path.isfile(exported_video_path):
 
             @after_this_request
             def delete_video(response):
                 try:
-                    os.remove(get_exported_video_path(links[0]))
+                    os.remove(exported_video_path)
                 except Exception as ex:
                     return ex
                 return response
 
-            return send_file(get_exported_video_path(links[0]), as_attachment=True)
+            return send_file(exported_video_path, as_attachment=True)
         return "No video to download"
     return redirect("/")
+
+
+@socketio.on("set_text_only_mode")
+def handle_set_text_only_mode(data):
+    global text_only_mode
+    text_only_mode = data["text"]
 
 
 if __name__ == "__main__":
