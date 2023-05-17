@@ -5,7 +5,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-11, ubuntu-22.04, windows-2019]
+        os: [macos-11, windows-2019]
 
     runs-on: ${{ matrix.os }}
 
@@ -59,6 +59,11 @@ jobs:
         run: |
           pyinstaller -D -n Fudgify --add-data "static;static" --add-data "templates;templates" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --noconfirm app.py
         if: runner.os == 'Windows'
+      
+      - name: Cleanup
+        run: |
+          rm -rf dist/Fudgify
+        if: runner.os == 'macOS'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3

@@ -106,9 +106,3 @@ def get_text_clip_from_audio(text: str, id: int) -> VideoClip:
 
     final_clip = concatenate_videoclips(subclips, method="compose")
     return final_clip
-
-
-if __name__ == "__main__":
-    get_text_clip_from_audio("just setting up my twttr", 20).write_videofile(
-        "20_text.mp4"
-    )

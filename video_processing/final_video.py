@@ -53,6 +53,8 @@ def create_video_clip_with_text_only(text: str, id: int) -> VideoClip:
     return get_text_clip_from_audio(text, id)
 
 
+# https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
+# https://twitter.com/jack/status/20?lang=en
 async def generate_video(links: list, text_only=False) -> None:
     """
     Generates a video from a list of links to twitter statuses.
@@ -172,19 +174,3 @@ async def generate_video(links: list, text_only=False) -> None:
 def get_exported_video_path(link: str) -> str:
     id = re.search("/status/(\d+)", link).group(1)
     return f"{tempfile.gettempdir()}/results/{id}/Fudgify-{id}.webm"
-
-
-# https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
-# https://twitter.com/jack/status/20?lang=en
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog="TwitterVideoMakerBot",
-        description="Generates a video from a thread of tweets",
-    )
-    parser.add_argument("tweet_link", nargs="?", type=str, help="Link of the tweet")
-    args = parser.parse_args()
-    if args.tweet_link is None:
-        link = input("Link of the tweet: ")
-    else:
-        link = args.tweet_link
-    asyncio.run(generate_video(link))
