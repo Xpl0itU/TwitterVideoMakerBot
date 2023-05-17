@@ -67,17 +67,20 @@ async def generate_video(links: list, text_only=False) -> None:
             broadcast=True,
         )
         return
-    ids = list(map(lambda x: re.search("/status/(\d+)", x).group(1), links))
-    output_dir = f"{tempfile.gettempdir()}/results/{ids[0]}"
-    temp_dir = f"{tempfile.gettempdir()}/temp/{ids[0]}"
+    tweets_in_threads = flatten(
+        list(
+            map(
+                lambda x: TweetManager(x).get_thread_tweets(),
+                list(map(lambda x: re.search("/status/(\d+)", x).group(1), links)),
+            )
+        )
+    )
+    output_dir = f"{tempfile.gettempdir()}/results/{tweets_in_threads[0].id}"
+    temp_dir = f"{tempfile.gettempdir()}/temp/{tweets_in_threads[0].id}"
 
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    tweets_in_threads = flatten(
-        list(map(lambda x: TweetManager(x).get_thread_tweets(), ids))
-    )
-    tweet_ids = list(map(lambda x: x.id, tweets_in_threads))
     video_clips = list()
     emit(
         "stage",
@@ -86,7 +89,12 @@ async def generate_video(links: list, text_only=False) -> None:
     )
 
     if text_only:
-        tweets_text = list(map(lambda x: TweetManager(x).get_audio_from_tweet(temp_dir), tweet_ids))
+        tweets_text = list(
+            map(
+                lambda x: TweetManager(x.id).get_audio_from_tweet(temp_dir),
+                tweets_in_threads,
+            )
+        )
     else:
         async with async_playwright() as p:
             browser = await p.firefox.launch(headless=True)
@@ -112,17 +120,18 @@ async def generate_video(links: list, text_only=False) -> None:
             await browser.close()
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
-    for i in range(len(tweet_ids)):
+    for i in range(len(tweets_in_threads)):
         video_clips.append(
-            create_video_clip_with_text_only(tweets_text[i], tweet_ids[i])
+            create_video_clip_with_text_only(tweets_text[i], tweets_in_threads[i].id)
             if text_only
             else create_video_clip(
-                f"{temp_dir}/{tweet_ids[i]}.mp3", f"{temp_dir}/{tweet_ids[i]}.png"
+                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
+                f"{temp_dir}/{tweets_in_threads[i].id}.png",
             )
         )
         emit(
             "progress",
-            {"progress": math.floor(i / len(tweet_ids) * 100)},
+            {"progress": math.floor(i / len(tweets_in_threads) * 100)},
             broadcast=True,
         )
 
@@ -134,7 +143,9 @@ async def generate_video(links: list, text_only=False) -> None:
     )
     background_clip = VideoFileClip(background_filename)
     tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
-    start_time, end_time = get_start_and_end_times(tweets_clip.duration, background_clip.duration)
+    start_time, end_time = get_start_and_end_times(
+        tweets_clip.duration, background_clip.duration
+    )
     background_clip = background_clip.subclip(start_time, end_time)
     background_clip = background_clip.without_audio()
     background_clip = background_clip.resize(height=1920)
@@ -154,7 +165,7 @@ async def generate_video(links: list, text_only=False) -> None:
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
     final_video.write_videofile(
-        f"{output_dir}/Fudgify-{ids[0]}.webm",
+        f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
         fps=24,
         remove_temp=True,
         threads=multiprocessing.cpu_count(),
