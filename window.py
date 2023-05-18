@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(hide_button)
 
         close_button = QPushButton("Quit")
-        close_button.pressed.connect(self.close)
+        close_button.pressed.connect(self.close)  # type: ignore
         layout.addWidget(close_button)
 
         container = QWidget()
