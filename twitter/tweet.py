@@ -23,7 +23,6 @@ class TweetManager:
         x = pp.remove_emails(x)
         x = pp.remove_urls(x)
         x = pp.remove_html_tags(x)
-        x = pp.remove_rt(x)
         x = pp.remove_accented_chars(x)
         return x
 

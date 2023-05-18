@@ -10,7 +10,7 @@ import sys
 if sys.version_info[0] >= 3:
     from datetime import timezone
 
-voices = [
+voices = {
     "Brian",
     "Emma",
     "Russell",
@@ -26,7 +26,7 @@ voices = [
     "Kendra",
     "Salli",
     "Raveena",
-]
+}
 
 
 def sleep_until(time) -> None:

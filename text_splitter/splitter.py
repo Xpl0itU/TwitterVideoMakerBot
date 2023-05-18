@@ -64,7 +64,7 @@ def get_sentences_from_story(story: str) -> list:
                 buffer = buffer[end_index + 1 :]
                 break
 
-    return [sentence.strip() for sentence in sentences]
+    return list(map(lambda x: x.strip(), sentences))
 
 
 def get_tts(text: str, output: str, filename: str) -> None:
@@ -90,8 +90,12 @@ def get_text_clip_for_tweet(text: str, id: int, audio_path: str) -> VideoClip:
     sentences = get_sentences_from_story(text)
     subclips = list()
     for i in range(len(sentences)):
-        get_tts(sentences[i], f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", f"{id}-{i}")
-        audio = AudioFileClip(f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts/{id}-{i}.mp3")
+        get_tts(
+            sentences[i], f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", f"{id}-{i}"
+        )
+        audio = AudioFileClip(
+            f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts/{id}-{i}.mp3"
+        )
         subclip = TextClip(
             sentences[i],
             fontsize=75,
