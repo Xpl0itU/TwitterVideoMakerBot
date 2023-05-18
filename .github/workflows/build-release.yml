@@ -21,21 +21,9 @@ jobs:
           cache: 'pip'
           cache-dependency-path: |
             **/requirements*.txt
-      
-      - name: Create virtual environment
-        run: python -m venv env
-        
-      - name: Activate virtual environment
-        run: source env/bin/activate
-        if: runner.os != 'Windows'
-        
-      - name: Activate virtual environment
-        run: env\Scripts\activate.bat
-        if: runner.os == 'Windows'
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
           python -m textblob.download_corpora
           python -m spacy download en_core_web_sm
       
