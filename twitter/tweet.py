@@ -78,9 +78,9 @@ class TweetManager:
         :return: list, list of tweets
         """
         tweet = app.tweet_detail(f"{self.id}")
-        if len(tweet.threads) == 0: # type: ignore
+        if len(tweet.threads) == 0:  # type: ignore
             return [tweet]
-        thread_tweets = tweet.threads # type: ignore
+        thread_tweets = tweet.threads  # type: ignore
         # Fix for first tweet in thread not being added
         if thread_tweets[0].id != tweet.id:
             thread_tweets.insert(0, tweet)
@@ -92,7 +92,7 @@ class TweetManager:
         :return: str, text of the tweet
         """
         tweet = app.tweet_detail(f"{self.id}")
-        tweet_text = self.cleanup_tweet_text(tweet.text) # type: ignore
+        tweet_text = self.cleanup_tweet_text(tweet.text)  # type: ignore
         engine = StreamlabsPolly()
         engine.run(tweet_text, f"{output}/{self.id}.mp3")
         return tweet_text

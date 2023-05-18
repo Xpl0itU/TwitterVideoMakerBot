@@ -80,13 +80,13 @@ async def generate_video(links: list, text_only=False) -> None:
     os.makedirs(temp_dir, exist_ok=True)
 
     video_clips = list()
+    tweets_text = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
         broadcast=True,
     )
 
-    tweets_text = list()
     if text_only:
         tweets_text = list(
             map(
@@ -145,7 +145,7 @@ async def generate_video(links: list, text_only=False) -> None:
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
     background_clip = VideoFileClip(background_filename)
-    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1) # type: ignore
+    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)  # type: ignore
     start_time, end_time = get_start_and_end_times(
         tweets_clip.duration, background_clip.duration
     )
