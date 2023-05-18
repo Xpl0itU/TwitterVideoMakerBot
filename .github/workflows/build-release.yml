@@ -58,11 +58,13 @@ jobs:
       - name: Build Executable
         run: |
           pyinstaller -D -n Fudgify --add-data "static;static" --add-data "templates;templates" --collect-all moviepy --collect-all textblob --collect-all spacy --hiddenimport srsly.msgpack.util --hiddenimport lxml --collect-all flask_socketio --collect-all en_core_web_sm --additional-hooks-dir=hooks -i static/img/App_Icon.png --noconfirm app.py
+          Compress-Archive -Path dist/ -DestinationPath Fudgify-Windows.zip
         if: runner.os == 'Windows'
       
       - name: Cleanup
         run: |
           rm -rf dist/Fudgify
+          tar czf Fudgify-macOS.tar.gz dist/
         if: runner.os == 'macOS'
 
       - name: Upload Artifacts
@@ -70,4 +72,4 @@ jobs:
         with:
           name: ${{ runner.os }} Build
           path: |
-            dist/
+            Fudgify-${{ runner.os }}.*
