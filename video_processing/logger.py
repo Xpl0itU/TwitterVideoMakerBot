@@ -7,7 +7,7 @@ class MoviePyLogger:
     def __init__(self):
         self.progress_queue = queue.Queue()
 
-    def custom_stdout_write(self, s):
+    def custom_stdout_write(self, s) -> int:
         self.progress_queue.put(s)
 
         percentage_pattern = r"(\d+)\%"
@@ -16,6 +16,7 @@ class MoviePyLogger:
             percentage = int(percentage_match.group(1))
             emit("progress", {"progress": percentage}, broadcast=True)
         self.progress_queue.task_done()
+        return 0
 
     def __enter__(self):
         return self

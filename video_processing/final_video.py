@@ -68,8 +68,8 @@ async def generate_video(links: list, text_only=False) -> None:
     tweets_in_threads = flatten(
         list(
             map(
-                lambda x: TweetManager(x).get_thread_tweets(),
-                list(map(lambda x: re.search("/status/(\d+)", x).group(1), links)),
+                lambda x: TweetManager(int(x)).get_thread_tweets(),
+                list(map(lambda x: re.search(r"/status/(\d+)", x).group(1), links)),
             )
         )
     )
@@ -86,6 +86,7 @@ async def generate_video(links: list, text_only=False) -> None:
         broadcast=True,
     )
 
+    tweets_text = list()
     if text_only:
         tweets_text = list(
             map(
@@ -144,7 +145,7 @@ async def generate_video(links: list, text_only=False) -> None:
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
     background_clip = VideoFileClip(background_filename)
-    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)
+    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1) # type: ignore
     start_time, end_time = get_start_and_end_times(
         tweets_clip.duration, background_clip.duration
     )
@@ -185,5 +186,5 @@ async def generate_video(links: list, text_only=False) -> None:
 
 
 def get_exported_video_path(link: str) -> str:
-    id = re.search("/status/(\d+)", link).group(1)
+    id = re.search(r"/status/(\d+)", link).group(1)
     return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.webm"

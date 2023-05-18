@@ -48,6 +48,7 @@ def get_sentences_from_story(story: str) -> list:
             elif i >= (preferred_len - 1) and (
                 last_stop or last_parenthesis or last_comma or last_space
             ):
+                end_index = -2
                 if last_stop:
                     end_index = last_stop
                 elif last_parenthesis:
