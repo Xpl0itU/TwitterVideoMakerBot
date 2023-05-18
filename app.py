@@ -1,4 +1,4 @@
-import pyrebaselite
+import pyrebase
 from flask import (
     Flask,
     render_template,
@@ -24,7 +24,7 @@ from threading import Timer
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, async_mode="threading")
-firebase = pyrebaselite.initialize_app(firebase_auth)
+firebase = pyrebase.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False
 text_only_mode = False
