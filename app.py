@@ -15,7 +15,7 @@ from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
 from firebase_info import firebase_auth
 from window import MainWindow
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 from engineio.async_drivers import threading
 import platform
 import webbrowser
@@ -110,6 +110,6 @@ if __name__ == "__main__":
         app_qt = QApplication([])
         w = MainWindow()
         w.show()
-        app_qt.exec_()
+        app_qt.exec()
         server.terminate()
         server.join()
