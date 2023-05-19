@@ -8,22 +8,20 @@ from flask import (
     redirect,
 )
 from flask_socketio import SocketIO
-import asyncio
 import os
-import multiprocessing
 from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
 from firebase_info import firebase_auth
 from window import MainWindow
 from PyQt6.QtWidgets import QApplication
-from engineio.async_drivers import threading
+from PyQt6.QtCore import QThread
 import platform
 import webbrowser
 from threading import Timer
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app, async_mode="threading")
+socketio = SocketIO(app, async_handlers=False)
 firebase = pyrebase.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False
@@ -70,7 +68,7 @@ def handle_submit(data):
     if is_loggedin:
         global links
         links = data
-        asyncio.run(generate_video(links, text_only=text_only_mode))
+        generate_video(links, text_only=text_only_mode)
 
 
 @app.route("/video")
@@ -101,15 +99,13 @@ def handle_set_text_only_mode(data):
 if __name__ == "__main__":
     moviepy_dummy()
     if platform.system() == "Windows":
-        Timer(1, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
-        socketio.run(app, use_reloader=False)
+        Timer(1, lambda: webbrowser.open("http://127.0.0.1:5001")).start()
+        socketio.run(app, use_reloader=False, port=5001)
     else:
-        multiprocessing.set_start_method("fork")
-        server = multiprocessing.Process(target=app.run, kwargs={"use_reloader": False})
-        server.start()
+        flask_thread = QThread()
+        flask_thread.run = lambda: socketio.run(app, use_reloader=False, port=5001)
+        flask_thread.start()
         app_qt = QApplication([])
         w = MainWindow()
         w.show()
         app_qt.exec()
-        server.terminate()
-        server.join()

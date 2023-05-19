@@ -22,7 +22,7 @@ from text_splitter.splitter import get_text_clip_for_tweet
 import sys
 from flask_socketio import emit
 from video_processing.logger import MoviePyLogger
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 import math
 
 import operator
@@ -53,7 +53,7 @@ def create_video_clip_with_text_only(text: str, id: int, audio_path: str) -> Vid
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
-async def generate_video(links: list, text_only=False) -> None:
+def generate_video(links: list, text_only=False) -> None:
     """
     Generates a video from a list of links to twitter statuses.
     """
@@ -95,16 +95,16 @@ async def generate_video(links: list, text_only=False) -> None:
             )
         )
     else:
-        async with async_playwright() as p:
-            browser = await p.firefox.launch(headless=True)
-            page = await browser.new_page()
+        with sync_playwright() as p:
+            browser = p.firefox.launch(headless=True)
+            page = browser.new_page()
             for i in range(len(tweets_in_threads)):
                 # Twitter doesn't care about usernames
                 thread_item_link = (
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
                 if (
-                    await TweetManager(
+                    TweetManager(
                         tweets_in_threads[i].id
                     ).get_audio_video_from_tweet(page, thread_item_link, temp_dir)
                     is False
@@ -116,7 +116,7 @@ async def generate_video(links: list, text_only=False) -> None:
                     broadcast=True,
                 )
 
-            await browser.close()
+            browser.close()
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     for i in range(len(tweets_in_threads)):

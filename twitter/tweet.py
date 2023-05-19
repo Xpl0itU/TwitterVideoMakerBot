@@ -3,7 +3,7 @@ import preprocessing_text_ben as pp
 
 from TTS.streamlabs_polly import StreamlabsPolly
 
-from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 from flask_socketio import emit
 
 app = Twitter()
@@ -27,7 +27,7 @@ class TweetManager:
         return x
 
     @staticmethod
-    async def screenshot_tweet(page: Page, url: str, output_path: str) -> bool:
+    def screenshot_tweet(page: Page, url: str, output_path: str) -> bool:
         """
         Takes a screenshot of a tweet.
 
@@ -37,23 +37,23 @@ class TweetManager:
         :return: True if the screenshot was successful, False otherwise
         """
         try:
-            await page.goto(url)
-            await page.wait_for_load_state("networkidle")
+            page.goto(url)
+            page.wait_for_load_state("networkidle")
 
             views = page.locator("//div[contains(@class, 'r-1471scf')]")
             tweet = page.locator("(//article[@data-testid='tweet'])", has=views)
-            banner = await page.query_selector("#layers")
-            thread_banner = await page.query_selector(
+            banner = page.query_selector("#layers")
+            thread_banner = page.query_selector(
                 "//div[@id='react-root']/div[1]/div[1]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]"
             )
 
             for element in [banner, thread_banner]:
-                await page.evaluate(
+                page.evaluate(
                     'element => element.setAttribute("style", "display: none;")',
                     element,
                 )
 
-            await tweet.screenshot(path=output_path)
+            tweet.screenshot(path=output_path)
             return True
         except PlaywrightTimeoutError:
             emit(
@@ -97,7 +97,7 @@ class TweetManager:
         engine.run(tweet_text, f"{output}/{self.id}.mp3")
         return tweet_text
 
-    async def get_audio_video_from_tweet(
+    def get_audio_video_from_tweet(
         self, page: Page, link: str, output: str
     ) -> bool:
         """
@@ -105,4 +105,4 @@ class TweetManager:
         :return: bool, True if success, False if fail.
         """
         self.get_audio_from_tweet(output)
-        return await self.screenshot_tweet(page, link, f"{output}/{self.id}.png")
+        return self.screenshot_tweet(page, link, f"{output}/{self.id}.png")
