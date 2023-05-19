@@ -10,5 +10,5 @@ yt-dlp==2023.3.4
 pyinstaller==5.11.0
 lxml==4.9.2
 Pyrebase4==4.7.0
-PyQt5==5.15.9
+PyQt6==6.5.0
 playwright==1.33.0
