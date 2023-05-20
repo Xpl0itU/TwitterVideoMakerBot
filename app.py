@@ -98,14 +98,10 @@ def handle_set_text_only_mode(data):
 
 if __name__ == "__main__":
     moviepy_dummy()
-    if platform.system() == "Windows":
-        Timer(1, lambda: webbrowser.open("http://127.0.0.1:5001")).start()
-        socketio.run(app, use_reloader=False, port=5001)
-    else:
-        flask_thread = QThread()
-        flask_thread.run = lambda: socketio.run(app, use_reloader=False, port=5001)
-        flask_thread.start()
-        app_qt = QApplication([])
-        w = MainWindow()
-        w.show()
-        app_qt.exec()
+    flask_thread = QThread()
+    flask_thread.run = lambda: socketio.run(app, use_reloader=False, port=5001)
+    flask_thread.start()
+    app_qt = QApplication([])
+    w = MainWindow()
+    w.show()
+    app_qt.exec()
