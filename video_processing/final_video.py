@@ -104,9 +104,9 @@ def generate_video(links: list, text_only=False) -> None:
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
                 if (
-                    TweetManager(
-                        tweets_in_threads[i].id
-                    ).get_audio_video_from_tweet(page, thread_item_link, temp_dir)
+                    TweetManager(tweets_in_threads[i].id).get_audio_video_from_tweet(
+                        page, thread_item_link, temp_dir
+                    )
                     is False
                 ):
                     return
