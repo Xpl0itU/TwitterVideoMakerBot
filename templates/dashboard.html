@@ -9,15 +9,13 @@
 
 <body>
   <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
-  <form id="form">
-    <div id="inputs">
-      <button type="button" class="green-button" onclick="addInput()">+</button>
-      <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
-      <button id="submit" type="submit" class="blue-button">Submit</button>
-      <input id="text-only" type="checkbox" {{ checked }} />
-      <label for="text-only" id="text-only-label">Text only</label>
-    </div>
-  </form>
+  <div id="inputs">
+    <button type="button" class="green-button" onclick="addInput()">+</button>
+    <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
+    <button id="submit" class="blue-button">Submit</button>
+    <input id="text-only" type="checkbox" {{ checked }} />
+    <label for="text-only" id="text-only-label">Text only</label>
+  </div>
   <p class="small-text">Average wait time is 10 minutes.</p>
   <hr>
   <div id="progress-container" style="display:none">
@@ -39,11 +37,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
   <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    $('#form').submit(function (event) {
-      event.preventDefault();
-      var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
-      socket.emit('submit', inputs);
-    });
     function addInput() {
       var inputsDiv = $('#inputs');
       var newInputDiv = $('<div>').attr({
@@ -90,6 +83,9 @@
 
       // Show the progress container
       progressContainer.style.display = '';
+
+      var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
+      socket.emit('submit', inputs);
     });
 
     textOnlyCheckbox.addEventListener('click', function () {
