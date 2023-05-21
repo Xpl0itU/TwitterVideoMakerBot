@@ -30,15 +30,32 @@ from functools import reduce
 
 
 def flatten(lst: list) -> list:
-    return reduce(operator.add, lst)
+    """
+    Flattens a list of lists.
+    :param lst: The list to flatten.
+    :return: The flattened list.
+    """
+    return list(reduce(operator.add, lst))
 
 
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
+    """
+    Gets the start and end times for the video.
+    :param video_length: The length of the video.
+    :param length_of_clip: The length of the clip.
+    :return: The start and end times.
+    """
     random_time = randrange(180, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
 
 
 def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
+    """
+    Creates a video clip from the image and audio file.
+    :param  audio_path: Path to the audio file.
+    :param image_path: Path to the image file.
+    :return: The video clip.
+    """
     audio_clip = AudioFileClip(audio_path)
     image_clip = ImageClip(image_path)
     image_clip = image_clip.set_audio(audio_clip)
@@ -48,14 +65,24 @@ def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
 
 # TODO: Show media if the tweet contains it
 def create_video_clip_with_text_only(text: str, id: int, audio_path: str) -> VideoClip:
+    """
+    Creates a video clip from the text and audio file.
+    :param text: The text of the tweet.
+    :param id: The id of the tweet.
+    :param audio_path: Path to the audio file.
+    :return: The video clip.
+    """
     return get_text_clip_for_tweet(text, id, audio_path)
 
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
-def generate_video(links: list, text_only=False) -> None:
+def generate_video(links: list, text_only: bool = False) -> None:
     """
     Generates a video from a list of links to twitter statuses.
+    :param links: A list of links to twitter statuses.
+    :param text_only: Whether or not to only generate the text of the tweet.
+    :return: None.
     """
     links = list(filter(lambda x: x != "", links))
     if len(links) == 0 or links is None or links == [] or links == [""]:
@@ -186,5 +213,10 @@ def generate_video(links: list, text_only=False) -> None:
 
 
 def get_exported_video_path(link: str) -> str:
+    """
+    Gets the path to the exported video.
+    :param link: The link to the twitter status.
+    :return: The path to the exported video.
+    """
     id = re.search(r"/status/(\d+)", link).group(1)
     return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.webm"
