@@ -79,7 +79,7 @@ def get_video():
                 try:
                     os.remove(exported_video_path)
                 except Exception as ex:
-                    return ex
+                    pass
                 return response
 
             return send_file(exported_video_path, as_attachment=True)
