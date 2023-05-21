@@ -15,9 +15,6 @@ from firebase_info import firebase_auth
 from window import MainWindow
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread
-import platform
-import webbrowser
-from threading import Timer
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
