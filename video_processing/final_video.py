@@ -27,6 +27,7 @@ import math
 
 import operator
 from functools import reduce
+from copy import deepcopy
 
 
 def flatten(lst: list) -> list:
@@ -189,7 +190,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
     final_video = CompositeVideoClip([background_clip, tweets_clip])
 
     logger = MoviePyLogger()
-    original_stderr = sys.stderr
+    original_stderr_write = deepcopy(sys.stderr.write)
     sys.stderr.write = logger.custom_stdout_write
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
@@ -205,7 +206,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
         bitrate="50000k",
         audio_bitrate="128k",
     )
-    sys.stderr.write = original_stderr.write
+    sys.stderr.write = original_stderr_write
     emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
     emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
