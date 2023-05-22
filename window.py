@@ -2,10 +2,6 @@ from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidg
 import webbrowser
 
 
-def open_browser():
-    webbrowser.open("http://127.0.0.1:5001")
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -17,7 +13,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(label)
 
         close_button = QPushButton("Open in browser")
-        close_button.pressed.connect(open_browser)
+        close_button.pressed.connect(lambda: webbrowser.open("http://localhost:5001"))
         layout.addWidget(close_button)
 
         hide_button = QPushButton("Hide")
