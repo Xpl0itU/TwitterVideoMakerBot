@@ -10,7 +10,7 @@
 <body>
   <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
   <div id="inputs">
-    <button type="button" class="green-button" onclick="addInput()">+</button>
+    <button type="button" class="green-button" id="add-input" onclick="addInput()">+</button>
     <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
     <button id="submit" class="blue-button">Submit</button>
     <input id="text-only" type="checkbox" {{ checked }} />
@@ -38,6 +38,8 @@
   <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     function addInput() {
+      var addInputButton = document.getElementById('add-input');
+      var addInputWidth = window.getComputedStyle(addInputButton).getPropertyValue('width');
       var inputsDiv = $('#inputs');
       var newInputDiv = $('<div>').attr({
         'style': 'margin-top: 1%;'
@@ -49,7 +51,7 @@
         'size': '50'
       });
       var removeButton = $('<button>').text('-').addClass('green-button').attr({
-        'style': 'margin-right: 1%;'
+        'style': 'margin-right: 1%; width: ' + addInputWidth + ';'
       }).click(function () {
         $(this).parent().remove();
       });
