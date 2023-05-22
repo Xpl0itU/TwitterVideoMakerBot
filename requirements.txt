@@ -13,5 +13,6 @@ Pyrebase4==4.7.0
 PyQt6==6.5.0
 playwright==1.33.0
 requests-toolbelt==0.10.1 
-requests==2.29.0 
+requests==2.29.0
+simple-websocket==0.10.0
 urllib3

@@ -16,6 +16,11 @@ from window import MainWindow
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread
 
+from engineio.async_drivers import threading
+import platform
+import sys
+import multiprocessing
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, async_handlers=False)
@@ -25,6 +30,8 @@ is_loggedin = False
 text_only_mode = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
+if platform.system() == "Darwin":
+    sys.path.append("bin")
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -94,9 +101,10 @@ def handle_set_text_only_mode(data):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     moviepy_dummy()
     flask_thread = QThread()
-    flask_thread.run = lambda: socketio.run(app, use_reloader=False, port=5001)
+    flask_thread.run = lambda: socketio.run(app, debug=False, use_reloader=False, port=5001, allow_unsafe_werkzeug=True)
     flask_thread.start()
     app_qt = QApplication([])
     w = MainWindow()
