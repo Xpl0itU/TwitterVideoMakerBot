@@ -28,9 +28,11 @@ jobs:
           python -m textblob.download_corpora
           python -m spacy download en_core_web_sm
       
-      - name: Install Playwright Firefox
+      - name: Install Playwright Firefox and FFMpeg
         run: |
           PLAYWRIGHT_BROWSERS_PATH=0 playwright install firefox
+          brew tap homebrew-ffmpeg/ffmpeg
+          brew install homebrew-ffmpeg/ffmpeg/ffmpeg
         if: runner.os != 'Windows'
       
       - name: Install Playwright Firefox

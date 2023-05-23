@@ -2,14 +2,9 @@ import os
 import shutil
 import multiprocessing
 from moviepy.editor import (
-    AudioFileClip,
-    ImageClip,
     VideoClip,
-    concatenate_videoclips,
-    VideoFileClip,
-    CompositeVideoClip,
-    vfx,
 )
+import ffmpeg
 import re
 from twitter.tweet import TweetManager
 from random import randrange
@@ -19,15 +14,13 @@ import tempfile
 from video_processing.user_data import get_user_data_dir
 from text_splitter.splitter import get_text_clip_for_tweet
 
-import sys
 from flask_socketio import emit
-from video_processing.logger import MoviePyLogger
+from video_processing.logger import ProgressFfmpeg
 from playwright.sync_api import sync_playwright
 import math
 
 import operator
 from functools import reduce
-from copy import deepcopy
 
 
 def flatten(lst: list) -> list:
@@ -46,22 +39,20 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     :param length_of_clip: The length of the clip.
     :return: The start and end times.
     """
-    random_time = randrange(180, int(length_of_clip) - int(video_length))
-    return random_time, random_time + video_length
+    random_time = randrange(180, int(float(length_of_clip)) - int(float(video_length)))
+    return random_time, random_time + int(float(video_length))
 
 
-def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
+def create_video_clip(audio_path: str, image_path: str):
     """
     Creates a video clip from the image and audio file.
     :param  audio_path: Path to the audio file.
     :param image_path: Path to the image file.
     :return: The video clip.
     """
-    audio_clip = AudioFileClip(audio_path)
-    image_clip = ImageClip(image_path)
-    image_clip = image_clip.set_audio(audio_clip)
-    image_clip = image_clip.set_duration(audio_clip.duration)
-    return image_clip.set_fps(1)
+    audio_clip = ffmpeg.input(audio_path)
+    image_clip = ffmpeg.input(image_path, framerate=1)
+    return ffmpeg.concat(image_clip, audio_clip, v=1, a=1)
 
 
 # TODO: Show media if the tweet contains it
@@ -166,47 +157,68 @@ def generate_video(links: list, text_only: bool = False) -> None:
             broadcast=True,
         )
 
-    tweets_clip = concatenate_videoclips(
-        video_clips, "compose", bg_color=None, padding=0
-    ).set_position("center")
     background_filename = (
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
-    background_clip = VideoFileClip(background_filename)
-    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)  # type: ignore
-    start_time, end_time = get_start_and_end_times(
-        tweets_clip.duration, background_clip.duration
+    background_clip = ffmpeg.input(background_filename)
+    # tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)  # type: ignore
+    screenshot_width = int((1080 * 45) // 100)
+    video_clips = list(
+        map(
+            lambda x: x.filter(
+                "scale",
+                w=screenshot_width,
+                h=-2,
+                force_original_aspect_ratio="decrease",
+            ),
+            video_clips,
+        )
     )
-    background_clip = background_clip.subclip(start_time, end_time)
-    background_clip = background_clip.without_audio()
-    background_clip = background_clip.resize(height=1920)
-    c = background_clip.w // 2
-    half_w = 1080 // 2
-    x1 = c - half_w
-    x2 = c + half_w
-    background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
-    screenshot_width = int((1080 * 90) // 100)
-    tweets_clip = tweets_clip.resize(width=screenshot_width - 50)
-    final_video = CompositeVideoClip([background_clip, tweets_clip])
-
-    logger = MoviePyLogger()
-    original_stderr_write = deepcopy(sys.stderr.write)
-    sys.stderr.write = logger.custom_stdout_write
+    ffmpeg.concat(*video_clips).output(
+        f"{temp_dir}/temp_tweets.webm",
+        **{
+            "c:v": "libvpx-vp9",
+        },
+    ).run(overwrite_output=True)
+    start_time, end_time = get_start_and_end_times(
+        ffmpeg.probe(f"{temp_dir}/temp_tweets.webm")["format"]["duration"],
+        ffmpeg.probe(background_filename)["format"]["duration"],
+    )
+    tweets_clip = ffmpeg.input(f"{temp_dir}/temp_tweets.webm")
+    final_video = (
+        background_clip.overlay(
+            tweets_clip,
+            x="(main_w-overlay_w)/2",
+            y="(main_h-overlay_h)/2",
+        )
+        .trim(start=start_time, end=end_time)
+        .filter("crop", "ih*(1080/1920)", "ih")
+    )
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
-    final_video.write_videofile(
-        f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
-        fps=24,
-        remove_temp=True,
-        threads=multiprocessing.cpu_count(),
-        preset="ultrafast",
-        temp_audiofile_path=tempfile.gettempdir(),
-        codec="libvpx",
-        bitrate="50000k",
-        audio_bitrate="128k",
+    progress = ProgressFfmpeg(
+        int(float(ffmpeg.probe(f"{temp_dir}/temp_tweets.webm")["format"]["duration"])),
+        lambda x: emit("progress", {"progress": int(x * 100)}, broadcast=True),
     )
-    sys.stderr.write = original_stderr_write
+    ffmpeg.output(
+        final_video,
+        f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
+        f="webm",
+        **{
+            "b:v": "50M",
+            "b:a": "128k",
+            "threads": multiprocessing.cpu_count(),
+        },
+    ).overwrite_output().global_args("-progress", progress.output_file.name).run(
+        quiet=True,
+        overwrite_output=True,
+        capture_stdout=False,
+        capture_stderr=False,
+    )
+
+    emit("progress", {"progress": 100}, broadcast=True)
+
     emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
     emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
