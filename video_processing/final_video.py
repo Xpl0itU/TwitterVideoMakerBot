@@ -15,12 +15,26 @@ from video_processing.user_data import get_user_data_dir
 from text_splitter.splitter import get_text_clip_for_tweet
 
 from flask_socketio import emit
-from video_processing.logger import ProgressFfmpeg
 from playwright.sync_api import sync_playwright
 import math
 
 import operator
 from functools import reduce
+
+from queue import Queue
+from threading import Thread
+from contextlib import redirect_stderr
+import sys
+import io
+
+
+def reader(pipe, queue):
+    try:
+        with pipe:
+            for line in iter(pipe.readline, b""):
+                queue.put((pipe, line))
+    finally:
+        queue.put(None)
 
 
 def flatten(lst: list) -> list:
@@ -39,20 +53,8 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     :param length_of_clip: The length of the clip.
     :return: The start and end times.
     """
-    random_time = randrange(180, int(float(length_of_clip)) - int(float(video_length)))
-    return random_time, random_time + int(float(video_length))
-
-
-def create_video_clip(audio_path: str, image_path: str):
-    """
-    Creates a video clip from the image and audio file.
-    :param  audio_path: Path to the audio file.
-    :param image_path: Path to the image file.
-    :return: The video clip.
-    """
-    audio_clip = ffmpeg.input(audio_path)
-    image_clip = ffmpeg.input(image_path, framerate=1)
-    return ffmpeg.concat(image_clip, audio_clip, v=1, a=1)
+    random_time = randrange(180, int(float(length_of_clip)) - int(video_length))
+    return random_time, random_time + video_length
 
 
 # TODO: Show media if the tweet contains it
@@ -99,7 +101,10 @@ def generate_video(links: list, text_only: bool = False) -> None:
     os.makedirs(temp_dir, exist_ok=True)
 
     video_clips = list()
+    audio_clips = list()
     tweets_text = list()
+    audio_lengths = list()
+    video_duration = 0.0
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
@@ -146,11 +151,23 @@ def generate_video(links: list, text_only: bool = False) -> None:
                 f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
             )
             if text_only
-            else create_video_clip(
-                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
+            else ffmpeg.input(
                 f"{temp_dir}/{tweets_in_threads[i].id}.png",
+            )["v"]
+        )
+        audio_clips.append(
+            ffmpeg.input(
+                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
             )
         )
+        audio_lengths.append(
+            float(
+                ffmpeg.probe(f"{temp_dir}/{tweets_in_threads[i].id}.mp3")["format"][
+                    "duration"
+                ]
+            )
+        )
+        video_duration += audio_lengths[i]
         emit(
             "progress",
             {"progress": math.floor(i / len(tweets_in_threads) * 100)},
@@ -160,62 +177,77 @@ def generate_video(links: list, text_only: bool = False) -> None:
     background_filename = (
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
-    background_clip = ffmpeg.input(background_filename)
-    # tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)  # type: ignore
-    screenshot_width = int((1080 * 45) // 100)
-    video_clips = list(
-        map(
-            lambda x: x.filter(
-                "scale",
-                w=screenshot_width,
-                h=-2,
-                force_original_aspect_ratio="decrease",
-            ),
-            video_clips,
-        )
-    )
-    ffmpeg.concat(*video_clips).output(
-        f"{temp_dir}/temp_tweets.webm",
-        **{
-            "c:v": "libvpx-vp9",
-        },
-    ).run(overwrite_output=True)
+
     start_time, end_time = get_start_and_end_times(
-        ffmpeg.probe(f"{temp_dir}/temp_tweets.webm")["format"]["duration"],
+        video_duration,
         ffmpeg.probe(background_filename)["format"]["duration"],
     )
-    tweets_clip = ffmpeg.input(f"{temp_dir}/temp_tweets.webm")
-    final_video = (
-        background_clip.overlay(
-            tweets_clip,
-            x="(main_w-overlay_w)/2",
-            y="(main_h-overlay_h)/2",
+
+    background_clip = (
+        ffmpeg.input(background_filename)
+        .trim(
+            start=start_time,
+            end=end_time,
         )
-        .trim(start=start_time, end=end_time)
         .filter("crop", "ih*(1080/1920)", "ih")
     )
 
+    current_time = 0
+    for i in range(len(video_clips)):
+        background_clip = background_clip.overlay(
+            video_clips[i],
+            enable=f"between(t,{current_time},{current_time + audio_lengths[i]})",
+            x="(main_w-overlay_w)/2",
+            y="(main_h-overlay_h)/2",
+        )
+        current_time += audio_lengths[i]
+
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
-    progress = ProgressFfmpeg(
-        int(float(ffmpeg.probe(f"{temp_dir}/temp_tweets.webm")["format"]["duration"])),
-        lambda x: emit("progress", {"progress": int(x * 100)}, broadcast=True),
-    )
-    ffmpeg.output(
-        final_video,
-        f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
-        f="webm",
-        **{
-            "b:v": "50M",
-            "b:a": "128k",
-            "threads": multiprocessing.cpu_count(),
-        },
-    ).overwrite_output().global_args("-progress", progress.output_file.name).run(
-        quiet=True,
-        overwrite_output=True,
-        capture_stdout=False,
-        capture_stderr=False,
-    )
+    try:
+        video = (
+            ffmpeg.output(
+                background_clip,
+                # *audio_clips,
+                f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
+                f="webm",
+                **{
+                    "b:v": "20M",
+                    "b:a": "128k",
+                    "threads": multiprocessing.cpu_count(),
+                },
+            )
+            .overwrite_output()
+            .global_args("-progress", "pipe:1", "-hwaccel", "auto")
+            .run_async(pipe_stdout=True, pipe_stderr=True)
+        )
+        q = Queue()
+        Thread(target=reader, args=[video.stdout, q]).start()
+        Thread(target=reader, args=[video.stderr, q]).start()
+        progress_bar_output = io.StringIO()
+        error = list()
+        with redirect_stderr(progress_bar_output):
+            for _ in range(2):
+                for source, line in iter(q.get, None):
+                    line = line.decode()
+                    if source == video.stderr:
+                        error.append(line)
+                    else:
+                        line = line.rstrip()
+                        parts = line.split("=")
+                        key = parts[0] if len(parts) > 0 else None
+                        value = parts[1] if len(parts) > 1 else None
+                        if key == "out_time_ms":
+                            time = max(round(float(value) / 1000000.0, 2), 0)
+                            emit(
+                                "progress",
+                                {"progress": int(time * 100)},
+                                broadcast=True,
+                            )
+                        elif key == "progress" and value == "end":
+                            emit("progress", {"progress": 100}, broadcast=True)
+    except ffmpeg.Error as e:
+        print(error, file=sys.stderr)
 
     emit("progress", {"progress": 100}, broadcast=True)
 
