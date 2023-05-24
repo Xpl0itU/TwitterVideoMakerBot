@@ -104,7 +104,9 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     moviepy_dummy()
     flask_thread = QThread()
-    flask_thread.run = lambda: socketio.run(app, debug=False, use_reloader=False, port=5001, allow_unsafe_werkzeug=True)
+    flask_thread.run = lambda: socketio.run(
+        app, debug=False, use_reloader=False, port=5001, allow_unsafe_werkzeug=True
+    )
     flask_thread.start()
     app_qt = QApplication([])
     w = MainWindow()
