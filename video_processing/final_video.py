@@ -207,12 +207,6 @@ def generate_video(links: list, text_only: bool = False) -> None:
         current_time += audio_lengths[i]
 
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
-    ffmpeg.output(
-        audio_concat,
-        f"{temp_dir}/audio_temp-{tweets_in_threads[0].id}.mp3",
-        **{"b:a": "128k"},
-    ).overwrite_output().run(quiet=True)
-    audio = ffmpeg.input(f"{temp_dir}/audio_temp-{tweets_in_threads[0].id}.mp3")
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
@@ -220,7 +214,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
         video = (
             ffmpeg.output(
                 background_clip,
-                audio,
+                audio_concat,
                 f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
                 f="mp4",
                 **{
