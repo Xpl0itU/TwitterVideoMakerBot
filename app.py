@@ -1,3 +1,12 @@
+
+import os
+import sys
+import site
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    ffmpeg_dir = os.path.join(sys._MEIPASS, "bin")
+    os.environ['PATH'] = os.pathsep.join([os.environ['PATH'], ffmpeg_dir])
+    site.addsitedir(ffmpeg_dir)
+
 import pyrebase
 from flask import (
     Flask,
@@ -8,7 +17,6 @@ from flask import (
     redirect,
 )
 from flask_socketio import SocketIO
-import os
 from video_processing.final_video import generate_video, get_exported_video_path
 from fixups.moviepy_fixups import moviepy_dummy
 from firebase_info import firebase_auth
@@ -17,8 +25,6 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread
 
 from engineio.async_drivers import threading
-import platform
-import sys
 import multiprocessing
 
 app = Flask(__name__)
@@ -30,8 +36,6 @@ is_loggedin = False
 text_only_mode = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
-if platform.system() == "Darwin":
-    sys.path.append("bin")
 
 
 @app.route("/", methods=["GET", "POST"])
