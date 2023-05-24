@@ -143,6 +143,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
             browser.close()
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
+    screenshot_width = int((1920 * 45) // 100)
     for i in range(len(tweets_in_threads)):
         video_clips.append(
             create_video_clip_with_text_only(
@@ -153,7 +154,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
             if text_only
             else ffmpeg.input(
                 f"{temp_dir}/{tweets_in_threads[i].id}.png",
-            )["v"]
+            )["v"].filter("scale", screenshot_width, -1)
         )
         audio_clips.append(
             ffmpeg.input(
@@ -201,6 +202,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
             y="(main_h-overlay_h)/2",
         )
         current_time += audio_lengths[i]
+    background_clip = background_clip.filter('setpts', 'PTS-STARTPTS').filter('fifo')
 
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     ffmpeg.output(
