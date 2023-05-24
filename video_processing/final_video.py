@@ -201,12 +201,14 @@ def generate_video(links: list, text_only: bool = False) -> None:
             y="(main_h-overlay_h)/2",
         )
         current_time += audio_lengths[i]
-    
+
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     ffmpeg.output(
-        audio_concat, f"{temp_dir}/audio_temp.mp3", **{"b:a": "128k"}
+        audio_concat,
+        f"{temp_dir}/audio_temp-{tweets_in_threads[0].id}.mp3",
+        **{"b:a": "128k"},
     ).overwrite_output().run(quiet=True)
-    audio = ffmpeg.input(f"{temp_dir}/audio_temp.mp3")
+    audio = ffmpeg.input(f"{temp_dir}/audio_temp-{tweets_in_threads[0].id}.mp3")
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
