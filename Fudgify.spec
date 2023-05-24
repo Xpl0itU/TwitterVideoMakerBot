@@ -22,7 +22,7 @@ block_cipher = None
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=[*binaries, (which("ffmpeg"), "bin")],
+    binaries=[*binaries, (which("ffmpeg"), "bin"), (which("ffprobe"), "bin")],
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=['hooks'],
