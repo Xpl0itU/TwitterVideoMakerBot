@@ -201,6 +201,12 @@ def generate_video(links: list, text_only: bool = False) -> None:
             y="(main_h-overlay_h)/2",
         )
         current_time += audio_lengths[i]
+    
+    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
+    ffmpeg.output(
+        audio_concat, f"{temp_dir}/audio_temp.mp3", **{"b:a": "128k"}
+    ).overwrite_output().run(quiet=True)
+    audio = ffmpeg.input(f"{temp_dir}/audio_temp.mp3")
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
@@ -208,10 +214,11 @@ def generate_video(links: list, text_only: bool = False) -> None:
         video = (
             ffmpeg.output(
                 background_clip,
-                # *audio_clips,
-                f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
-                f="webm",
+                audio,
+                f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
+                f="mp4",
                 **{
+                    "c:v": "h264",
                     "b:v": "20M",
                     "b:a": "128k",
                     "threads": multiprocessing.cpu_count(),
@@ -264,4 +271,4 @@ def get_exported_video_path(link: str) -> str:
     :return: The path to the exported video.
     """
     id = re.search(r"/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.webm"
+    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.mp4"
