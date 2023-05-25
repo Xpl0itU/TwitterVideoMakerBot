@@ -1,9 +1,6 @@
 import os
 import shutil
 import multiprocessing
-from moviepy.editor import (
-    VideoClip,
-)
 import ffmpeg
 import re
 from twitter.tweet import TweetManager
