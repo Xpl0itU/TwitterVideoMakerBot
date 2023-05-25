@@ -44,18 +44,6 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     return random_time, random_time + video_length
 
 
-# TODO: Show media if the tweet contains it
-def create_video_clip_with_text_only(text: str, id: int, audio_path: str) -> VideoClip:
-    """
-    Creates a video clip from the text and audio file.
-    :param text: The text of the tweet.
-    :param id: The id of the tweet.
-    :param audio_path: Path to the audio file.
-    :return: The video clip.
-    """
-    return get_text_clip_for_tweet(text, id, audio_path)
-
-
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
 def generate_video(links: list, text_only: bool = False) -> None:
@@ -91,6 +79,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
     audio_clips = list()
     tweets_text = list()
     audio_lengths = list()
+    subclip_audio_durations = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
@@ -131,17 +120,12 @@ def generate_video(links: list, text_only: bool = False) -> None:
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     screenshot_width = int((1080 * 45) // 100)
     for i in range(len(tweets_in_threads)):
-        video_clips.append(
-            create_video_clip_with_text_only(
-                tweets_text[i],
-                tweets_in_threads[i].id,
-                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
+        if not text_only:
+            video_clips.append(
+                ffmpeg.input(
+                    f"{temp_dir}/{tweets_in_threads[i].id}.png",
+                ).filter("scale", screenshot_width, -1)
             )
-            if text_only
-            else ffmpeg.input(
-                f"{temp_dir}/{tweets_in_threads[i].id}.png",
-            ).filter("scale", screenshot_width, -1)
-        )
         audio_clips.append(
             ffmpeg.input(
                 f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
@@ -185,15 +169,21 @@ def generate_video(links: list, text_only: bool = False) -> None:
     )
 
     current_time = 0
-    for i in range(len(video_clips)):
-        background_clip = ffmpeg.filter(
-            [background_clip, video_clips[i]],
-            "overlay",
-            enable=f"between(t,{current_time},{current_time + audio_lengths[i]})",
-            x="(main_w-overlay_w)/2",
-            y="(main_h-overlay_h)/2",
-        )
-        current_time += audio_lengths[i]
+    if text_only:
+        for i in range(len(tweets_text)):
+            background_clip, current_time = get_text_clip_for_tweet(
+                tweets_text[i], tweets_in_threads[i].id, background_clip, current_time
+            )
+    else:
+        for i in range(len(video_clips)):
+            background_clip = ffmpeg.filter(
+                [background_clip, video_clips[i]],
+                "overlay",
+                enable=f"between(t,{current_time},{current_time + audio_lengths[i]})",
+                x="(main_w-overlay_w)/2",
+                y="(main_h-overlay_h)/2",
+            )
+            current_time += audio_lengths[i]
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 

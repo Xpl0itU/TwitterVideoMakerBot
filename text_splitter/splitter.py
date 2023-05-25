@@ -1,4 +1,5 @@
-from moviepy.editor import *
+import os
+import ffmpeg
 from TTS.streamlabs_polly import StreamlabsPolly
 import tempfile
 
@@ -80,7 +81,7 @@ def get_tts(text: str, output: str, filename: str) -> None:
     engine.run(text, f"{output}/{filename}.mp3")
 
 
-def get_text_clip_for_tweet(text: str, id: int, audio_path: str) -> VideoClip:
+def get_text_clip_for_tweet(text: str, id: int, background_clip, offset: int):
     """
     Creates a video clip from a story.
     :param text: str, The story to create a video clip from.
@@ -89,25 +90,25 @@ def get_text_clip_for_tweet(text: str, id: int, audio_path: str) -> VideoClip:
     """
     os.makedirs(f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", exist_ok=True)
     sentences = get_sentences_from_story(text)
-    subclips = list()
     for i in range(len(sentences)):
         get_tts(
             sentences[i], f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts", f"{id}-{i}"
         )
-        audio = AudioFileClip(
-            f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts/{id}-{i}.mp3"
+        temp_audio_duration = float(
+            ffmpeg.probe(f"{tempfile.gettempdir()}/Fudgify/temp/{id}/tts/{id}-{i}.mp3")[
+                "format"
+            ]["duration"]
         )
-        subclip = TextClip(
-            sentences[i],
-            fontsize=75,
-            size=(1080, 1920),
-            color="white",
-            method="caption",
-            align="center",
-        ).set_fps(1)
-        subclip = subclip.set_duration(audio.duration)
-        subclips.append(subclip)
+        background_clip = ffmpeg.drawtext(
+            background_clip,
+            text=sentences[i],
+            x="(w-text_w)/2",
+            y="(h-text_h)/2",
+            fontsize=50,
+            fontcolor="White",
+            fontfile=os.path.join("fonts", "Roboto-Regular.ttf"),
+            enable=f"between(t,{offset},{offset + temp_audio_duration})",
+        )
+        offset += temp_audio_duration
 
-    audio = AudioFileClip(audio_path)
-    final_clip = concatenate_videoclips(subclips, method="compose")
-    return final_clip.set_audio(audio).set_duration(audio.duration)
+    return background_clip, offset
