@@ -1,10 +1,10 @@
-
 import os
 import sys
 import site
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
     ffmpeg_dir = os.path.join(sys._MEIPASS, "bin")
-    os.environ['PATH'] = os.pathsep.join([os.environ['PATH'], ffmpeg_dir])
+    os.environ["PATH"] = os.pathsep.join([os.environ["PATH"], ffmpeg_dir])
     site.addsitedir(ffmpeg_dir)
 
 import pyrebase
@@ -18,7 +18,6 @@ from flask import (
 )
 from flask_socketio import SocketIO
 from video_processing.final_video import generate_video, get_exported_video_path
-from fixups.moviepy_fixups import moviepy_dummy
 from firebase_info import firebase_auth
 from window import MainWindow
 from PyQt6.QtWidgets import QApplication
@@ -34,6 +33,7 @@ firebase = pyrebase.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False
 text_only_mode = False
+add_subtitles = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
 
@@ -66,7 +66,9 @@ def login():
 def index():
     if is_loggedin:
         return render_template(
-            "dashboard.html", checked="checked" if text_only_mode else ""
+            "dashboard.html",
+            text_only="checked" if text_only_mode else "",
+            add_subtitles="checked" if add_subtitles else "",
         )
     return redirect("/")
 
@@ -104,9 +106,14 @@ def handle_set_text_only_mode(data):
     text_only_mode = data["text"]
 
 
+@socketio.on("set_add_subtitles")
+def handle_set_add_subtitles(data):
+    global add_subtitles
+    add_subtitles = data["text"]
+
+
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    moviepy_dummy()
     flask_thread = QThread()
     flask_thread.run = lambda: socketio.run(
         app, debug=False, use_reloader=False, port=5001, allow_unsafe_werkzeug=True

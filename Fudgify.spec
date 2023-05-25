@@ -2,11 +2,9 @@
 from PyInstaller.utils.hooks import collect_all
 from shutil import which
 
-datas = [('static', 'static'), ('templates', 'templates'), ('fonts', 'fonts')]
+datas = [('static', 'static'), ('templates', 'templates')]
 binaries = []
 hiddenimports = ['srsly.msgpack.util']
-tmp_ret = collect_all('moviepy')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('textblob')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('spacy')

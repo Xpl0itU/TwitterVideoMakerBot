@@ -13,8 +13,12 @@
     <button type="button" class="green-button" id="add-input" onclick="addInput()">+</button>
     <input id="tweet-link" type="text" name="input" placeholder="Enter your tweet's link here" size="50">
     <button id="submit" class="blue-button">Submit</button>
-    <input id="text-only" type="checkbox" {{ checked }} />
-    <label for="text-only" id="text-only-label">Text only</label>
+    <div>
+      <input id="text-only" type="checkbox" {{ text_only }} />
+      <label for="text-only" id="text-only-label" class="small-label">Text only</label>
+      <input id="add-subtitles" type="checkbox" {{ add_subtitles }} />
+      <label for="add-subtitles" id="add-subtitles-label" class="small-label">Add subtitles</label>
+    </div>
   </div>
   <p class="small-text">Average wait time is 2 minutes for every 1 minute of video.</p>
   <hr>
@@ -32,7 +36,7 @@
   <script src="http://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-    var DEBUG = true <!-- Change to true if you want fast input -->
+    var DEBUG = false <!-- Change to true if you want fast input -->
     if (DEBUG) {
       $('#tweet-link').append('$<input>').attr({ 'value': 'https://twitter.com/MyBetaMod/status/1641987054446735360?s=20' });
     }
@@ -70,6 +74,7 @@
     var progressBar = document.getElementById('progress-bar');
     var resultsContainer = document.getElementById('results-container');
     var textOnlyCheckbox = document.getElementById('text-only');
+    var addSubtitlesCheckbox = document.getElementById('add-subtitles');
 
     submitButton.addEventListener('click', function () {
       // Clear the progress bar
@@ -92,6 +97,12 @@
 
     textOnlyCheckbox.addEventListener('click', function () {
       socket.emit('set_text_only_mode', { text: textOnlyCheckbox.checked });
+      addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
+    });
+
+    addSubtitlesCheckbox.addEventListener('click', function () {
+      socket.emit('set_add_subtitles', { text: addSubtitlesCheckbox.checked });
+      textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
     });
 
     socket.on('done', function (data) {

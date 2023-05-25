@@ -57,6 +57,6 @@ input[type=password] {
     white-space: nowrap;
 }
 
-#text-only-label {
+.small-label {
     font-size: small;
 }

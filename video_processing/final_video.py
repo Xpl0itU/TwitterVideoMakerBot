@@ -12,7 +12,6 @@ from typing import Tuple
 from video_downloading.youtube import download_background
 import tempfile
 from video_processing.user_data import get_user_data_dir
-from text_splitter.splitter import get_text_clip_for_tweet
 
 from flask_socketio import emit
 from playwright.sync_api import sync_playwright
@@ -21,7 +20,7 @@ import math
 import operator
 from functools import reduce
 
-from ffmpeg_progress_yield import FfmpegProgress, ffmpeg_progress_yield
+from ffmpeg_progress_yield import FfmpegProgress
 
 from video_processing.subtitles import transcribe_audio
 
@@ -48,7 +47,7 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
-def generate_video(links: list, text_only: bool = False) -> None:
+def generate_video(links: list, text_only: bool = False, add_subtitles: bool = False) -> None:
     """
     Generates a video from a list of links to twitter statuses.
     :param links: A list of links to twitter statuses.
@@ -175,12 +174,7 @@ def generate_video(links: list, text_only: bool = False) -> None:
     )
 
     current_time = 0
-    if text_only:
-        for i in range(len(tweets_text)):
-            background_clip, current_time = get_text_clip_for_tweet(
-                tweets_text[i], tweets_in_threads[i].id, background_clip, current_time
-            )
-    else:
+    if not text_only:
         for i in range(len(video_clips)):
             background_clip = ffmpeg.filter(
                 [background_clip, video_clips[i]],
@@ -199,17 +193,18 @@ def generate_video(links: list, text_only: bool = False) -> None:
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
     # Append subtitles for each audio
-    background_clip = background_clip.filter(
-        "subtitles",
-        f"{temp_dir}/subtitles.srt",  # Declare this filter as subtitles filter and give your path
-        force_style="Fontsize=18,"
-        "PrimaryColour=&HFFFFFF&,"  # Font Color in BGR format or ABGR format
-        "OutlineColour=&H40000000,"  # Outline Color from font
-        "Alignment=6,"  # Top Center Alignment
-        "MarginL=0,"  # Offset Left
-        "MarginR=0,"  # Offset Right
-        "MarginV=200",  # Vertical Offset
-    )
+    if add_subtitles or text_only:
+        background_clip = background_clip.filter(
+            "subtitles",
+            f"{temp_dir}/subtitles.srt",  # Declare this filter as subtitles filter and give your path
+            force_style="Fontsize=18,"
+            "PrimaryColour=&HFFFFFF&,"  # Font Color in BGR format or ABGR format
+            "OutlineColour=&H40000000,"  # Outline Color from font
+            "Alignment=6,"  # Top Center Alignment
+            "MarginL=0,"  # Offset Left
+            "MarginR=0,"  # Offset Right
+            "MarginV=200",  # Vertical Offset
+        )
     cmd = (
         ffmpeg.output(
             background_clip,
