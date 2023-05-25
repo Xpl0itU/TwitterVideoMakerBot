@@ -147,7 +147,9 @@ def generate_video(links: list, text_only: bool = False) -> None:
 
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     ffmpeg.output(
-        audio_concat, f"{temp_dir}/audio.mp3", **{"b:a": "192k"} # Build full audio to get more accurate subtitles
+        audio_concat,
+        f"{temp_dir}/audio.mp3",
+        **{"b:a": "192k"},  # Build full audio to get more accurate subtitles
     ).overwrite_output().run(quiet=True)
 
     background_filename = (
@@ -191,19 +193,22 @@ def generate_video(links: list, text_only: bool = False) -> None:
 
     # Generate subtitles timestamp for each audio
     emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
-    transcribe_audio(f"{temp_dir}/audio.mp3",f"{temp_dir}/subtitles.srt") #Export the subtitle for subtitles.str
+    transcribe_audio(
+        f"{temp_dir}/audio.mp3", f"{temp_dir}/subtitles.srt"
+    )  # Export the subtitle for subtitles.str
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
     # Append subtitles for each audio
     background_clip = background_clip.filter(
-        'subtitles', f"{temp_dir}/subtitles.srt", #Declare this filter as subtitles filter and give your path
+        "subtitles",
+        f"{temp_dir}/subtitles.srt",  # Declare this filter as subtitles filter and give your path
         force_style="Fontsize=18,"
-                    "PrimaryColour=&HFFFFFF&," #Font Color in BGR format or ABGR format
-                    "OutlineColour=&H40000000," #Outline Color from font
-                    "Alignment=6," #Top Center Alignment
-                    "MarginL=0," #Offset Left
-                    "MarginR=0," #Offset Right
-                    "MarginV=200" #Vertical Offset
+        "PrimaryColour=&HFFFFFF&,"  # Font Color in BGR format or ABGR format
+        "OutlineColour=&H40000000,"  # Outline Color from font
+        "Alignment=6,"  # Top Center Alignment
+        "MarginL=0,"  # Offset Left
+        "MarginR=0,"  # Offset Right
+        "MarginV=200",  # Vertical Offset
     )
     cmd = (
         ffmpeg.output(

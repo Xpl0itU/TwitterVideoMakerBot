@@ -32,10 +32,10 @@
   <script src="http://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-	var DEBUG = true <!-- Change to true if you want fast input -->
-	if(DEBUG){
-	  $('#tweet-link').append('$<input>').attr({'value': 'https://twitter.com/MyBetaMod/status/1641987054446735360?s=20'});
-	}
+    var DEBUG = true <!-- Change to true if you want fast input -->
+    if (DEBUG) {
+      $('#tweet-link').append('$<input>').attr({ 'value': 'https://twitter.com/MyBetaMod/status/1641987054446735360?s=20' });
+    }
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     function addInput() {
       var addInputButton = document.getElementById('add-input');
