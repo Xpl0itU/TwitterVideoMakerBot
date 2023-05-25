@@ -66,7 +66,7 @@ def append_segment_to_subtitles(subtitles: list,segment: dict,text: str):
     return subtitles
 
 def transcribe_audio(audio_path :str, srt_path: str, word_by_word: bool = True):
-    model = whisper.load_model("base") # Change this to your desired model
+    model = whisper.load_model("base") # You can choose: [tinu, base, small, medium] to more accurate subtitles
     transcribe = model.transcribe(
         audio=audio_path,
         fp16=False,
