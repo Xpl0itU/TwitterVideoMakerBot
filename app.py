@@ -78,7 +78,7 @@ def handle_submit(data):
     if is_loggedin:
         global links
         links = data
-        generate_video(links, text_only=text_only_mode)
+        generate_video(links, text_only=text_only_mode, add_subtitles=add_subtitles)
 
 
 @app.route("/video")

@@ -54,6 +54,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
     :param text_only: Whether or not to only generate the text of the tweet.
     :return: None.
     """
+    print(f"add_subtitles: {add_subtitles}")
     links = list(filter(lambda x: x != "", links))
     if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
@@ -78,7 +79,6 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
 
     video_clips = list()
     audio_clips = list()
-    tweets_text = list()
     audio_lengths = list()
     emit(
         "stage",
