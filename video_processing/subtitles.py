@@ -1,4 +1,4 @@
-import whisper
+import faster_whisper
 import json
 import ffmpeg
 from datetime import timedelta, datetime
@@ -35,7 +35,7 @@ def generate_srt(subtitles):
     timestamp_format = datetime.strptime(
         "00:00:00,000", "%H:%M:%S,%f"
     )  # Null element of addition to keep the timestamp format
-    srt = ""
+    srt = str()
     for i, subtitle in enumerate(subtitles):
         start_time = (subtitle["start_time"] + timestamp_format).strftime(
             "%H:%M:%S,%f"
@@ -52,37 +52,35 @@ def generate_srt(subtitles):
     return srt
 
 
-def append_segment_to_subtitles(subtitles: list, segment: dict, text: str):
+def append_segment_to_subtitles(subtitles: list, segment: tuple, text: str):
     if DEBUG:
-        print(f"{segment[text]} | {segment['start']} | {segment['end']}")
+        print(f"{segment.end} | {segment.end} | {segment.end}")
     # Calculate end_time for each word
-    start_time = timedelta(seconds=segment["start"])
-    end_time = timedelta(seconds=segment["end"])
+    start_time = timedelta(seconds=segment.start)
+    end_time = timedelta(seconds=segment.end)
     # Create subtitle for each word
     subtitle = {
         "start_time": start_time,
         "end_time": end_time,
-        "words": [segment[text]],
+        "words": [segment.word],
     }
     subtitles.append(subtitle)
     return subtitles
 
 
 def transcribe_audio(audio_path: str, srt_path: str, word_by_word: bool = True):
-    model = whisper.load_model(
+    model = faster_whisper.WhisperModel(
         "base"
     )  # You can choose: [tinu, base, small, medium] to more accurate subtitles
-    transcribe = model.transcribe(
-        audio=audio_path, fp16=False, word_timestamps=True, verbose=DEBUG
-    )
-    segments = transcribe["segments"]
+    transcribe = model.transcribe(audio=audio_path, word_timestamps=True)
+    segments = transcribe[0]
     if DEBUG:
         with open("transcribe_dump.txt", "w") as arq:
             arq.writelines(json.dumps(transcribe, indent=2))
-    subtitles = []
+    subtitles = list()
     for segment in segments:
         # Segment Information
-        words = segment["words"]
+        words = segment.words
         if word_by_word:
             for word in words:
                 subtitles = append_segment_to_subtitles(subtitles, word, "word")
@@ -96,4 +94,4 @@ def transcribe_audio(audio_path: str, srt_path: str, word_by_word: bool = True):
     with open(srt_path, "w", encoding="utf-8") as file:
         file.write(srt_content)
 
-    print("Subtitles was generated with success!")
+    print("Subtitles were generated with success!")
