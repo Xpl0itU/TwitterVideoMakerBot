@@ -79,7 +79,6 @@ def generate_video(links: list, text_only: bool = False) -> None:
     audio_clips = list()
     tweets_text = list()
     audio_lengths = list()
-    subclip_audio_durations = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
