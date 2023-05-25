@@ -21,20 +21,7 @@ import math
 import operator
 from functools import reduce
 
-from queue import Queue
-from threading import Thread
-from contextlib import redirect_stderr
-import sys
-import io
-
-
-def reader(pipe, queue):
-    try:
-        with pipe:
-            for line in iter(pipe.readline, b""):
-                queue.put((pipe, line))
-    finally:
-        queue.put(None)
+from ffmpeg_progress_yield import FfmpegProgress
 
 
 def flatten(lst: list) -> list:
@@ -104,7 +91,6 @@ def generate_video(links: list, text_only: bool = False) -> None:
     audio_clips = list()
     tweets_text = list()
     audio_lengths = list()
-    video_duration = 0.0
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
@@ -168,16 +154,19 @@ def generate_video(links: list, text_only: bool = False) -> None:
                 ]
             )
         )
-        video_duration += audio_lengths[i]
         emit(
             "progress",
             {"progress": math.floor(i / len(tweets_in_threads) * 100)},
             broadcast=True,
         )
 
+    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
+
     background_filename = (
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
+
+    video_duration = sum(audio_lengths)
 
     start_time, end_time = get_start_and_end_times(
         video_duration,
@@ -206,55 +195,28 @@ def generate_video(links: list, text_only: bool = False) -> None:
         )
         current_time += audio_lengths[i]
 
-    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
-
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
 
-    try:
-        video = (
-            ffmpeg.output(
-                background_clip,
-                audio_concat,
-                f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
-                f="mp4",
-                **{
-                    "c:v": "h264",
-                    "b:v": "20M",
-                    "b:a": "128k",
-                    "threads": multiprocessing.cpu_count(),
-                },
-            )
-            .overwrite_output()
-            .global_args("-progress", "pipe:1", "-hwaccel", "auto")
-            .run_async(pipe_stdout=True, pipe_stderr=True)
+    cmd = (
+        ffmpeg.output(
+            background_clip,
+            audio_concat,
+            f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
+            f="mp4",
+            **{
+                "c:v": "h264",
+                "b:v": "20M",
+                "b:a": "128k",
+                "threads": multiprocessing.cpu_count(),
+            },
         )
-        q = Queue()
-        Thread(target=reader, args=[video.stdout, q]).start()
-        Thread(target=reader, args=[video.stderr, q]).start()
-        progress_bar_output = io.StringIO()
-        error = list()
-        with redirect_stderr(progress_bar_output):
-            for _ in range(2):
-                for source, line in iter(q.get, None):
-                    line = line.decode()
-                    if source == video.stderr:
-                        error.append(line)
-                    else:
-                        line = line.rstrip()
-                        parts = line.split("=")
-                        key = parts[0] if len(parts) > 0 else None
-                        value = parts[1] if len(parts) > 1 else None
-                        if key == "out_time_ms":
-                            time = max(round(float(value) / 1000000.0, 2), 0)
-                            emit(
-                                "progress",
-                                {"progress": int(time * 100)},
-                                broadcast=True,
-                            )
-                        elif key == "progress" and value == "end":
-                            emit("progress", {"progress": 100}, broadcast=True)
-    except ffmpeg.Error as e:
-        print(error, file=sys.stderr)
+        .overwrite_output()
+        .compile()
+    )
+
+    ffmpeg_progress = FfmpegProgress(cmd)
+    for progress in ffmpeg_progress.run_command_with_progress():
+        emit("progress", {"progress": progress}, broadcast=True)
 
     emit("progress", {"progress": 100}, broadcast=True)
 
