@@ -2,14 +2,9 @@ import os
 import shutil
 import multiprocessing
 from moviepy.editor import (
-    AudioFileClip,
-    ImageClip,
     VideoClip,
-    concatenate_videoclips,
-    VideoFileClip,
-    CompositeVideoClip,
-    vfx,
 )
+import ffmpeg
 import re
 from twitter.tweet import TweetManager
 from random import randrange
@@ -19,15 +14,16 @@ import tempfile
 from video_processing.user_data import get_user_data_dir
 from text_splitter.splitter import get_text_clip_for_tweet
 
-import sys
 from flask_socketio import emit
-from video_processing.logger import MoviePyLogger
 from playwright.sync_api import sync_playwright
 import math
 
 import operator
 from functools import reduce
-from copy import deepcopy
+
+from ffmpeg_progress_yield import FfmpegProgress, ffmpeg_progress_yield
+
+from video_processing.subtitles import transcribe_audio
 
 
 def flatten(lst: list) -> list:
@@ -46,34 +42,8 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     :param length_of_clip: The length of the clip.
     :return: The start and end times.
     """
-    random_time = randrange(180, int(length_of_clip) - int(video_length))
+    random_time = randrange(180, int(float(length_of_clip)) - int(video_length))
     return random_time, random_time + video_length
-
-
-def create_video_clip(audio_path: str, image_path: str) -> ImageClip:
-    """
-    Creates a video clip from the image and audio file.
-    :param  audio_path: Path to the audio file.
-    :param image_path: Path to the image file.
-    :return: The video clip.
-    """
-    audio_clip = AudioFileClip(audio_path)
-    image_clip = ImageClip(image_path)
-    image_clip = image_clip.set_audio(audio_clip)
-    image_clip = image_clip.set_duration(audio_clip.duration)
-    return image_clip.set_fps(1)
-
-
-# TODO: Show media if the tweet contains it
-def create_video_clip_with_text_only(text: str, id: int, audio_path: str) -> VideoClip:
-    """
-    Creates a video clip from the text and audio file.
-    :param text: The text of the tweet.
-    :param id: The id of the tweet.
-    :param audio_path: Path to the audio file.
-    :return: The video clip.
-    """
-    return get_text_clip_for_tweet(text, id, audio_path)
 
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
@@ -108,7 +78,9 @@ def generate_video(links: list, text_only: bool = False) -> None:
     os.makedirs(temp_dir, exist_ok=True)
 
     video_clips = list()
+    audio_clips = list()
     tweets_text = list()
+    audio_lengths = list()
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice"},
@@ -147,17 +119,24 @@ def generate_video(links: list, text_only: bool = False) -> None:
             browser.close()
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
+    screenshot_width = int((1080 * 45) // 100)
     for i in range(len(tweets_in_threads)):
-        video_clips.append(
-            create_video_clip_with_text_only(
-                tweets_text[i],
-                tweets_in_threads[i].id,
+        if not text_only:
+            video_clips.append(
+                ffmpeg.input(
+                    f"{temp_dir}/{tweets_in_threads[i].id}.png",
+                ).filter("scale", screenshot_width, -1)
+            )
+        audio_clips.append(
+            ffmpeg.input(
                 f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
             )
-            if text_only
-            else create_video_clip(
-                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
-                f"{temp_dir}/{tweets_in_threads[i].id}.png",
+        )
+        audio_lengths.append(
+            float(
+                ffmpeg.probe(f"{temp_dir}/{tweets_in_threads[i].id}.mp3")["format"][
+                    "duration"
+                ]
             )
         )
         emit(
@@ -166,47 +145,89 @@ def generate_video(links: list, text_only: bool = False) -> None:
             broadcast=True,
         )
 
-    tweets_clip = concatenate_videoclips(
-        video_clips, "compose", bg_color=None, padding=0
-    ).set_position("center")
+    audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
+    ffmpeg.output(
+        audio_concat, f"{temp_dir}/audio.mp3", **{"b:a": "192k"} # Build full audio to get more accurate subtitles
+    ).overwrite_output().run(quiet=True)
+
     background_filename = (
         f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
     )
-    background_clip = VideoFileClip(background_filename)
-    tweets_clip = tweets_clip.fx(vfx.speedx, 1.1)  # type: ignore
-    start_time, end_time = get_start_and_end_times(
-        tweets_clip.duration, background_clip.duration
-    )
-    background_clip = background_clip.subclip(start_time, end_time)
-    background_clip = background_clip.without_audio()
-    background_clip = background_clip.resize(height=1920)
-    c = background_clip.w // 2
-    half_w = 1080 // 2
-    x1 = c - half_w
-    x2 = c + half_w
-    background_clip = background_clip.crop(x1=x1, y1=0, x2=x2, y2=1920)
-    screenshot_width = int((1080 * 90) // 100)
-    tweets_clip = tweets_clip.resize(width=screenshot_width - 50)
-    final_video = CompositeVideoClip([background_clip, tweets_clip])
 
-    logger = MoviePyLogger()
-    original_stderr_write = deepcopy(sys.stderr.write)
-    sys.stderr.write = logger.custom_stdout_write
+    video_duration = sum(audio_lengths)
+
+    start_time, end_time = get_start_and_end_times(
+        video_duration,
+        ffmpeg.probe(background_filename)["format"]["duration"],
+    )
+
+    background_clip = (
+        ffmpeg.input(background_filename)
+        .trim(
+            start=start_time,
+            end=end_time,
+        )
+        .filter("crop", "ih*(1080/1920)", "ih")
+        .filter("setpts", "PTS-STARTPTS")
+        .filter("fifo")
+    )
+
+    current_time = 0
+    if text_only:
+        for i in range(len(tweets_text)):
+            background_clip, current_time = get_text_clip_for_tweet(
+                tweets_text[i], tweets_in_threads[i].id, background_clip, current_time
+            )
+    else:
+        for i in range(len(video_clips)):
+            background_clip = ffmpeg.filter(
+                [background_clip, video_clips[i]],
+                "overlay",
+                enable=f"between(t,{current_time},{current_time + audio_lengths[i]})",
+                x="(main_w-overlay_w)/2",
+                y="(main_h-overlay_h)/2",
+            )
+            current_time += audio_lengths[i]
+
+    # Generate subtitles timestamp for each audio
+    emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
+    transcribe_audio(f"{temp_dir}/audio.mp3",f"{temp_dir}/subtitles.srt") #Export the subtitle for subtitles.str
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
-
-    final_video.write_videofile(
-        f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.webm",
-        fps=24,
-        remove_temp=True,
-        threads=multiprocessing.cpu_count(),
-        preset="ultrafast",
-        temp_audiofile_path=tempfile.gettempdir(),
-        codec="libvpx",
-        bitrate="50000k",
-        audio_bitrate="128k",
+    # Append subtitles for each audio
+    background_clip = background_clip.filter(
+        'subtitles', f"{temp_dir}/subtitles.srt", #Declare this filter as subtitles filter and give your path
+        force_style="Fontsize=18,"
+                    "PrimaryColour=&HFFFFFF&," #Font Color in BGR format or ABGR format
+                    "OutlineColour=&H40000000," #Outline Color from font
+                    "Alignment=6," #Top Center Alignment
+                    "MarginL=0," #Offset Left
+                    "MarginR=0," #Offset Right
+                    "MarginV=200" #Vertical Offset
     )
-    sys.stderr.write = original_stderr_write
+    cmd = (
+        ffmpeg.output(
+            background_clip,
+            audio_concat,
+            f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
+            f="mp4",
+            **{
+                "c:v": "h264",
+                "b:v": "20M",
+                "b:a": "128k",
+                "threads": multiprocessing.cpu_count(),
+            },
+        )
+        .overwrite_output()
+        .compile()
+    )
+
+    ffmpeg_progress = FfmpegProgress(cmd)
+    for progress in ffmpeg_progress.run_command_with_progress():
+        emit("progress", {"progress": progress}, broadcast=True)
+
+    emit("progress", {"progress": 100}, broadcast=True)
+
     emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
     emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
@@ -220,4 +241,4 @@ def get_exported_video_path(link: str) -> str:
     :return: The path to the exported video.
     """
     id = re.search(r"/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.webm"
+    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.mp4"

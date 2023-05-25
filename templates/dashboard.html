@@ -11,12 +11,12 @@
   <img src="{{ url_for('static',filename='img/Group_2.png') }}" width="30%">
   <div id="inputs">
     <button type="button" class="green-button" id="add-input" onclick="addInput()">+</button>
-    <input type="text" name="input" placeholder="Enter your tweet's link here" size="50">
+    <input id="tweet-link" type="text" name="input" placeholder="Enter your tweet's link here" size="50">
     <button id="submit" class="blue-button">Submit</button>
     <input id="text-only" type="checkbox" {{ checked }} />
     <label for="text-only" id="text-only-label">Text only</label>
   </div>
-  <p class="small-text">Average wait time is 10 minutes.</p>
+  <p class="small-text">Average wait time is 2 minutes for every 1 minute of video.</p>
   <hr>
   <div id="progress-container" style="display:none">
     <h2>Status:</h2>
@@ -28,14 +28,14 @@
       <button id="export" type="button" class="green-button" onclick="location.href='/video';">Download</button>
       <br>
     </div>
-    <p class="small-text"><b>Note for Apple users: </b>Preview exported video in VLC (<a
-        href="https://www.videolan.org/vlc/">https://www.videolan.org/vlc/</a>) or in a browser (excluding Safari). To
-      upload the video, visit the desktop website version of TikTok, Youtube or Instagram. Uploading it from your phone
-      will not work. If you need help, please email fudgify@protonmail.com.</p>
   </div>
   <script src="http://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
   <script>
+	var DEBUG = true <!-- Change to true if you want fast input -->
+	if(DEBUG){
+	  $('#tweet-link').append('$<input>').attr({'value': 'https://twitter.com/MyBetaMod/status/1641987054446735360?s=20'});
+	}
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     function addInput() {
       var addInputButton = document.getElementById('add-input');

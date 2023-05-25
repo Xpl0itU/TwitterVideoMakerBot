@@ -2,7 +2,7 @@
 from PyInstaller.utils.hooks import collect_all
 from shutil import which
 
-datas = [('static', 'static'), ('templates', 'templates')]
+datas = [('static', 'static'), ('templates', 'templates'), ('fonts', 'fonts')]
 binaries = []
 hiddenimports = ['srsly.msgpack.util']
 tmp_ret = collect_all('moviepy')
@@ -22,7 +22,7 @@ block_cipher = None
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=[*binaries, (which("ffmpeg"), "bin"), (which("magick"), 'bin')],
+    binaries=[*binaries, (which("ffmpeg"), "bin"), (which("ffprobe"), "bin")],
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=['hooks'],
