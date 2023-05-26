@@ -19,7 +19,7 @@ from functools import reduce
 
 from ffmpeg_progress_yield import FfmpegProgress
 
-from video_processing.subtitles import transcribe_audio
+from video_processing.subtitles import get_subtitles_style, transcribe_audio
 
 
 def flatten(lst: list) -> list:
@@ -200,13 +200,7 @@ def generate_video(
         background_clip = background_clip.filter(
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
-            force_style="Fontsize=18,"
-            "PrimaryColour=&HFFFFFF&,"  # Font Color in BGR format or ABGR format
-            "OutlineColour=&H40000000,"  # Outline Color from font
-            "Alignment=6,"  # Top Center Alignment
-            "MarginL=0,"  # Offset Left
-            "MarginR=0,"  # Offset Right
-            "MarginV=200",  # Vertical Offset
+            force_style=get_subtitles_style(desiredStyle=2)
         )
     cmd = (
         ffmpeg.output(

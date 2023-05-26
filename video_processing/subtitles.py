@@ -2,6 +2,33 @@ import multiprocessing
 import faster_whisper
 from datetime import timedelta, datetime
 
+def get_subtitles_style(
+    pColor: str = "&HFFFFFF&",
+    fontsize: float = 18,
+    bold: bool = True,
+    desiredStyle: int = 1
+):
+    style = {
+        #Great format to run with screenshots
+        1:  f"Fontsize={fontsize},"
+            f"PrimaryColour={pColor},"
+            f"OutlineColour=&H40000000,"
+            f"Bold={bold},"
+            f"Alignment=6,"
+            f"MarginL=0,"
+            f"MarginR=0,"
+            f"MarginV=200",
+        #Centerd Bold Text
+        2:  f"Fontsize={fontsize},"
+            f"PrimaryColour=&HFFFFFF&,"
+            f"OutlineColour=&H40000000,"
+            f"Bold={bold},"
+            f"Alignment=10,"
+            f"MarginL=0,"
+            f"MarginR=0,"
+            f"MarginV=0"
+    }
+    return style[desiredStyle]
 
 def generate_srt(subtitles: list) -> str:
     """
