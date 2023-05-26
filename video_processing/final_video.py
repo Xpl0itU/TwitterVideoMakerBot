@@ -45,7 +45,10 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
 def generate_video(
-    links: list, text_only: bool = False, add_subtitles: bool = False, only_first_tweet: bool = False
+    links: list,
+    text_only: bool = False,
+    add_subtitles: bool = False,
+    only_first_tweet: bool = False,
 ) -> None:
     """
     Generates a video from a list of links to twitter statuses.
@@ -124,8 +127,8 @@ def generate_video(
     screenshot_width = int((1080 * 45) // 100)
     for i in range(len(tweets_in_threads)):
         if not text_only:
-            #Only First tweet mode
-            if(i == 0 or not only_first_tweet):
+            # Only First tweet mode
+            if i == 0 or not only_first_tweet:
                 video_clips.append(
                     ffmpeg.input(
                         f"{temp_dir}/{tweets_in_threads[i].id}.png",
@@ -202,7 +205,7 @@ def generate_video(
         background_clip = background_clip.filter(
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
-            force_style=get_subtitles_style(desiredStyle=2 if text_only else 1)
+            force_style=get_subtitles_style(desiredStyle=2 if text_only else 1),
         )
     cmd = (
         ffmpeg.output(

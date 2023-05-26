@@ -97,7 +97,9 @@ class TweetManager:
         engine.run(tweet_text, f"{output}/{self.id}.mp3")
         return tweet_text
 
-    def get_audio_screenshot_from_tweet(self, page: Page, link: str, output: str) -> bool:
+    def get_audio_screenshot_from_tweet(
+        self, page: Page, link: str, output: str
+    ) -> bool:
         """
         Get audio and video from tweet
         :return: bool, True if success, False if fail.
