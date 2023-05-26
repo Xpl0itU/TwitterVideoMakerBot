@@ -18,6 +18,8 @@
       <label for="text-only" id="text-only-label" class="small-label">Text only</label>
       <input id="add-subtitles" type="checkbox" checked />
       <label for="add-subtitles" id="add-subtitles-label" class="small-label">Add subtitles</label>
+      <input id="only-first-tweet" type="checkbox" />
+      <label for="only-first-tweet" id="only-first-tweet-label" class="small-label">Only first tweet</label>
     </div>
   </div>
   <p class="small-text">Average wait time is 2 minutes for every 1 minute of video.</p>
@@ -75,6 +77,7 @@
     var resultsContainer = document.getElementById('results-container');
     var textOnlyCheckbox = document.getElementById('text-only');
     var addSubtitlesCheckbox = document.getElementById('add-subtitles');
+    var onlyFirstTweetCheckbox = document.getElementById('only-first-tweet');
 
     textOnlyCheckbox.addEventListener('click', function () {
       addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
@@ -82,6 +85,10 @@
 
     addSubtitlesCheckbox.addEventListener('click', function () {
       textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
+    });
+
+    onlyFirstTweetCheckbox.addEventListener('click', function () {
+	  addSubtitlesCheckbox.checked = onlyFirstTweetCheckbox.checked;
     });
 
     submitButton.addEventListener('click', function () {
@@ -100,7 +107,7 @@
       progressContainer.style.display = '';
 
       var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
-      socket.emit('submit', { inputs: inputs, textOnly: textOnlyCheckbox.checked, addSubtitles: addSubtitlesCheckbox.checked });
+      socket.emit('submit', { inputs: inputs, textOnly: textOnlyCheckbox.checked, addSubtitles: addSubtitlesCheckbox.checked, onlyFirstTweet: onlyFirstTweetCheckbox.checked });
     });
 
     socket.on('done', function (data) {
