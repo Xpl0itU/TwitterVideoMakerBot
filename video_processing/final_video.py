@@ -44,7 +44,9 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
-def generate_video(links: list, text_only: bool = False, add_subtitles: bool = False) -> None:
+def generate_video(
+    links: list, text_only: bool = False, add_subtitles: bool = False
+) -> None:
     """
     Generates a video from a list of links to twitter statuses.
     :param links: A list of links to twitter statuses.
@@ -82,14 +84,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
         broadcast=True,
     )
 
-    if text_only:
-        tweets_text = list(
-            map(
-                lambda x: TweetManager(x.id).get_audio_from_tweet(temp_dir),
-                tweets_in_threads,
-            )
-        )
-    else:
+    if not text_only:
         with sync_playwright() as p:
             browser = p.firefox.launch(headless=True)
             page = browser.new_page()
@@ -99,7 +94,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
                 if (
-                    TweetManager(tweets_in_threads[i].id).get_audio_video_from_tweet(
+                    TweetManager(tweets_in_threads[i].id).get_audio_screenshot_from_tweet(
                         page, thread_item_link, temp_dir
                     )
                     is False
@@ -143,7 +138,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     ffmpeg.output(
         audio_concat,
-        f"{temp_dir}/audio.mp3",
+        f"{temp_dir}/temp-audio-subtitles.mp3",
         **{"b:a": "192k"},  # Build full audio to get more accurate subtitles
     ).overwrite_output().run(quiet=True)
 
@@ -184,7 +179,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
     # Generate subtitles timestamp for each audio
     emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
     transcribe_audio(
-        f"{temp_dir}/audio.mp3", f"{temp_dir}/subtitles.srt"
+        f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
     )  # Export the subtitle for subtitles.str
 
     emit("stage", {"stage": "Rendering final video"}, broadcast=True)
@@ -192,7 +187,7 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
     if add_subtitles or text_only:
         background_clip = background_clip.filter(
             "subtitles",
-            f"{temp_dir}/subtitles.srt",  # Declare this filter as subtitles filter and give your path
+            f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
             force_style="Fontsize=18,"
             "PrimaryColour=&HFFFFFF&,"  # Font Color in BGR format or ABGR format
             "OutlineColour=&H40000000,"  # Outline Color from font
@@ -219,7 +214,9 @@ def generate_video(links: list, text_only: bool = False, add_subtitles: bool = F
     )
 
     ffmpeg_progress = FfmpegProgress(cmd)
-    for progress in ffmpeg_progress.run_command_with_progress():
+    for progress in ffmpeg_progress.run_command_with_progress(
+        duration_override=video_duration
+    ):
         emit("progress", {"progress": progress}, broadcast=True)
 
     emit("progress", {"progress": 100}, broadcast=True)
