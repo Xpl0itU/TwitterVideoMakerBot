@@ -81,6 +81,7 @@
 
     textOnlyCheckbox.addEventListener('click', function () {
       addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
+	  onlyFirstTweetCheckbox.disabled = textOnlyCheckbox.checked
     });
 
     addSubtitlesCheckbox.addEventListener('click', function () {
@@ -89,6 +90,8 @@
 
     onlyFirstTweetCheckbox.addEventListener('click', function () {
 	  addSubtitlesCheckbox.checked = onlyFirstTweetCheckbox.checked;
+	  addSubtitlesCheckbox.disabled = onlyFirstTweetCheckbox.checked;
+	  textOnlyCheckbox.disabled = onlyFirstTweetCheckbox.checked
     });
 
     submitButton.addEventListener('click', function () {
