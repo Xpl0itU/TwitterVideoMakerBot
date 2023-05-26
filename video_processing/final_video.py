@@ -84,7 +84,19 @@ def generate_video(
         broadcast=True,
     )
 
-    if not text_only:
+    if text_only:
+        for i in range(len(tweets_in_threads)):
+            if (
+                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
+                is False
+            ):
+                return
+            emit(
+                "progress",
+                {"progress": math.floor(i / len(tweets_in_threads) * 100)},
+                broadcast=True,
+            )
+    else:
         with sync_playwright() as p:
             browser = p.firefox.launch(headless=True)
             page = browser.new_page()
@@ -94,9 +106,9 @@ def generate_video(
                     f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
                 )
                 if (
-                    TweetManager(tweets_in_threads[i].id).get_audio_screenshot_from_tweet(
-                        page, thread_item_link, temp_dir
-                    )
+                    TweetManager(
+                        tweets_in_threads[i].id
+                    ).get_audio_screenshot_from_tweet(page, thread_item_link, temp_dir)
                     is False
                 ):
                     return

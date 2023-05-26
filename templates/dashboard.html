@@ -14,9 +14,9 @@
     <input id="tweet-link" type="text" name="input" placeholder="Enter your tweet's link here" size="50">
     <button id="submit" class="blue-button">Submit</button>
     <div>
-      <input id="text-only" type="checkbox" {{ text_only }} />
+      <input id="text-only" type="checkbox" />
       <label for="text-only" id="text-only-label" class="small-label">Text only</label>
-      <input id="add-subtitles" type="checkbox" {{ add_subtitles }} />
+      <input id="add-subtitles" type="checkbox" />
       <label for="add-subtitles" id="add-subtitles-label" class="small-label">Add subtitles</label>
     </div>
   </div>
@@ -92,17 +92,15 @@
       progressContainer.style.display = '';
 
       var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
-      socket.emit('submit', inputs);
-    });
+      socket.emit('submit', { inputs: inputs, textOnly: textOnlyCheckbox.checked, addSubtitles: addSubtitlesCheckbox.checked });
+      
+      textOnlyCheckbox.addEventListener('click', function () {
+        addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
+      });
 
-    textOnlyCheckbox.addEventListener('click', function () {
-      socket.emit('set_text_only_mode', { text: textOnlyCheckbox.checked });
-      addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
-    });
-
-    addSubtitlesCheckbox.addEventListener('click', function () {
-      socket.emit('set_add_subtitles', { text: addSubtitlesCheckbox.checked });
-      textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
+      addSubtitlesCheckbox.addEventListener('click', function () {
+        textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
+      });
     });
 
     socket.on('done', function (data) {

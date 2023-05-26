@@ -32,8 +32,6 @@ socketio = SocketIO(app, async_handlers=False)
 firebase = pyrebase.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False
-text_only_mode = False
-add_subtitles = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"
 
@@ -65,11 +63,7 @@ def login():
 @app.route("/dashboard")
 def index():
     if is_loggedin:
-        return render_template(
-            "dashboard.html",
-            text_only="checked" if text_only_mode else "",
-            add_subtitles="checked" if add_subtitles else "",
-        )
+        return render_template("dashboard.html")
     return redirect("/")
 
 
@@ -77,8 +71,8 @@ def index():
 def handle_submit(data):
     if is_loggedin:
         global links
-        links = data
-        generate_video(links, text_only=text_only_mode, add_subtitles=add_subtitles)
+        links = data["inputs"]
+        generate_video(links, text_only=data["textOnly"], add_subtitles=data["addSubtitles"])
 
 
 @app.route("/video")
@@ -98,18 +92,6 @@ def get_video():
             return send_file(exported_video_path, as_attachment=True)
         return "No video to download"
     return redirect("/")
-
-
-@socketio.on("set_text_only_mode")
-def handle_set_text_only_mode(data):
-    global text_only_mode
-    text_only_mode = data["text"]
-
-
-@socketio.on("set_add_subtitles")
-def handle_set_add_subtitles(data):
-    global add_subtitles
-    add_subtitles = data["text"]
 
 
 if __name__ == "__main__":
