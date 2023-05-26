@@ -16,7 +16,7 @@
     <div>
       <input id="text-only" type="checkbox" disabled />
       <label for="text-only" id="text-only-label" class="small-label">Text only</label>
-      <input id="add-subtitles" type="checkbox" checked/>
+      <input id="add-subtitles" type="checkbox" checked />
       <label for="add-subtitles" id="add-subtitles-label" class="small-label">Add subtitles</label>
     </div>
   </div>
@@ -76,6 +76,14 @@
     var textOnlyCheckbox = document.getElementById('text-only');
     var addSubtitlesCheckbox = document.getElementById('add-subtitles');
 
+    textOnlyCheckbox.addEventListener('click', function () {
+      addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
+    });
+
+    addSubtitlesCheckbox.addEventListener('click', function () {
+      textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
+    });
+
     submitButton.addEventListener('click', function () {
       // Clear the progress bar
       progressBar.style.width = '0%';
@@ -93,14 +101,6 @@
 
       var inputs = $('input[name="input"]').map(function () { return $(this).val(); }).get();
       socket.emit('submit', { inputs: inputs, textOnly: textOnlyCheckbox.checked, addSubtitles: addSubtitlesCheckbox.checked });
-      
-      textOnlyCheckbox.addEventListener('click', function () {
-        addSubtitlesCheckbox.disabled = textOnlyCheckbox.checked;
-      });
-
-      addSubtitlesCheckbox.addEventListener('click', function () {
-        textOnlyCheckbox.disabled = addSubtitlesCheckbox.checked;
-      });
     });
 
     socket.on('done', function (data) {
