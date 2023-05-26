@@ -202,7 +202,7 @@ def generate_video(
         background_clip = background_clip.filter(
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
-            force_style=get_subtitles_style(desiredStyle=2)
+            force_style=get_subtitles_style(desiredStyle=2 if text_only else 1)
         )
     cmd = (
         ffmpeg.output(
