@@ -30,7 +30,6 @@ def flatten(lst: list) -> list:
     """
     return list(reduce(operator.add, lst))
 
-
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     """
     Gets the start and end times for the video.
@@ -38,9 +37,15 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     :param length_of_clip: The length of the clip.
     :return: The start and end times.
     """
-    random_time = randrange(180, int(float(length_of_clip)) - int(video_length))
+    initialValue = 180
+    # Ensures that will be a valid interval in the video
+    while(int(length_of_clip) <= int(video_length+initialValue)):
+        if(initialValue == initialValue //2):
+            raise Exception("Your background is too short for this video length")
+        else:
+            initialValue //= 2 #Divides the initial value by 2 until reach 0
+    random_time = randrange(initialValue, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
-
 
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
