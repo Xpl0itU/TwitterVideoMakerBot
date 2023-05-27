@@ -24,22 +24,13 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
-          python -m textblob.download_corpora
-          python -m spacy download en_core_web_sm
+          python install_deps.py
       
-      - name: Install Playwright Firefox and FFMpeg
+      - name: Install FFMpeg on macOS
         run: |
-          PLAYWRIGHT_BROWSERS_PATH=0 playwright install firefox
           brew tap homebrew-ffmpeg/ffmpeg
           brew install homebrew-ffmpeg/ffmpeg/ffmpeg
         if: runner.os != 'Windows'
-      
-      - name: Install Playwright Firefox
-        run: |
-          $env:PLAYWRIGHT_BROWSERS_PATH="0"
-          playwright install firefox
-        if: runner.os == 'Windows'
 
       - name: Build Executable
         run: |
