@@ -210,7 +210,10 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     ffmpeg.output(
         audio_concat,
         f"{temp_dir}/temp-audio-subtitles.mp3",
-        **{"b:a": "192k"},  # Build full audio to get more accurate subtitles
+        **{
+            "b:a": "192k",
+            "threads": multiprocessing.cpu_count(),
+        },  # Build full audio to get more accurate subtitles
     ).overwrite_output().run(quiet=True)
 
     background_filename = (
