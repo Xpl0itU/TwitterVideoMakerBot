@@ -72,7 +72,7 @@ def handle_submit(data):
     if is_loggedin:
         global links
         links = data["inputs"]
-        generate_video(links, text_only=data["textOnly"], add_subtitles=data["addSubtitles"], only_first_tweet=data["onlyFirstTweet"])
+        generate_video(links, mode=data["mode"])
 
 
 @app.route("/video")

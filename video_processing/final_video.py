@@ -21,6 +21,33 @@ from ffmpeg_progress_yield import FfmpegProgress
 
 from video_processing.subtitles import get_subtitles_style, transcribe_audio
 
+modes = {
+    "tweet screenshots + captions": {
+        "show_captions": True,
+        "show_first_tweet_screenshot": True,
+        "show_rest_tweet_screenshots": True,
+        "subtitles_style": 1,
+    },
+    "first tweet screenshot + captions": {
+        "show_captions": True,
+        "show_first_tweet_screenshot": True,
+        "show_rest_tweet_screenshots": False,
+        "subtitles_style": 1,
+    },
+    "only tweet screenshots": {
+        "show_captions": False,
+        "show_first_tweet_screenshot": True,
+        "show_rest_tweet_screenshots": True,
+        "subtitles_style": 0,
+    },
+    "only captions": {
+        "show_captions": True,
+        "show_first_tweet_screenshot": False,
+        "show_rest_tweet_screenshots": False,
+        "subtitles_style": 2,
+    },
+}
+
 
 def flatten(lst: list) -> list:
     """
@@ -29,6 +56,7 @@ def flatten(lst: list) -> list:
     :return: The flattened list.
     """
     return list(reduce(operator.add, lst))
+
 
 def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int, int]:
     """
@@ -39,28 +67,46 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     """
     initialValue = 180
     # Ensures that will be a valid interval in the video
-    while(int(length_of_clip) <= int(video_length+initialValue)):
-        if(initialValue == initialValue //2):
+    while int(length_of_clip) <= int(video_length + initialValue):
+        if initialValue == initialValue // 2:
             raise Exception("Your background is too short for this video length")
         else:
-            initialValue //= 2 #Divides the initial value by 2 until reach 0
+            initialValue //= 2  # Divides the initial value by 2 until reach 0
     random_time = randrange(initialValue, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
 
+
 # https://twitter.com/MyBetaMod/status/1641987054446735360?s=20
 # https://twitter.com/jack/status/20?lang=en
-def generate_video(
-    links: list,
-    text_only: bool = False,
-    add_subtitles: bool = False,
-    only_first_tweet: bool = False,
-) -> None:
+def generate_video(links: list, mode: str = "tweet screenshots + captions") -> None:
     """
     Generates a video from a list of links to twitter statuses.
     :param links: A list of links to twitter statuses.
     :param text_only: Whether or not to only generate the text of the tweet.
     :return: None.
     """
+    mode_settings = modes.get(mode)
+    if mode_settings is None:
+        emit(
+            "stage",
+            {"stage": f"Error: Invalid mode '{mode}', please choose a valid mode"},
+            broadcast=True,
+        )
+        return
+
+    show_any_tweet_screenshots = (
+        mode_settings["show_first_tweet_screenshot"]
+        or mode_settings["show_rest_tweet_screenshots"]
+    )
+    text_only = mode_settings["show_captions"] and not show_any_tweet_screenshots
+    only_first_tweet = (
+        mode_settings["show_first_tweet_screenshot"]
+        and not mode_settings["show_rest_tweet_screenshots"]
+    )
+    add_subtitles = (
+        mode_settings["show_captions"] and mode_settings["subtitles_style"] != 0
+    )
+
     links = list(filter(lambda x: x != "", links))
     if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
@@ -92,19 +138,7 @@ def generate_video(
         broadcast=True,
     )
 
-    if text_only:
-        for i in range(len(tweets_in_threads)):
-            if (
-                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
-                is False
-            ):
-                return
-            emit(
-                "progress",
-                {"progress": math.floor(i / len(tweets_in_threads) * 100)},
-                broadcast=True,
-            )
-    else:
+    if show_any_tweet_screenshots:
         with sync_playwright() as p:
             browser = p.firefox.launch(headless=True)
             page = browser.new_page()
@@ -127,6 +161,18 @@ def generate_video(
                 )
 
             browser.close()
+    else:
+        for i in range(len(tweets_in_threads)):
+            if (
+                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
+                is False
+            ):
+                return
+            emit(
+                "progress",
+                {"progress": math.floor(i / len(tweets_in_threads) * 100)},
+                broadcast=True,
+            )
 
     emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
     screenshot_width = int((1080 * 45) // 100)
@@ -172,7 +218,7 @@ def generate_video(
 
     start_time, end_time = get_start_and_end_times(
         video_duration,
-        ffmpeg.probe(background_filename)["format"]["duration"],
+        float(ffmpeg.probe(background_filename)["format"]["duration"]),
     )
 
     background_clip = (
@@ -198,20 +244,22 @@ def generate_video(
             )
             current_time += audio_lengths[i]
 
-    # Generate subtitles timestamp for each audio
-    emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
-    transcribe_audio(
-        f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
-    )  # Export the subtitle for subtitles.str
-
-    emit("stage", {"stage": "Rendering final video"}, broadcast=True)
     # Append subtitles for each audio
     if add_subtitles or text_only:
+        # Generate subtitles timestamp for each audio
+        emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
+        transcribe_audio(
+            f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
+        )  # Export the subtitle for subtitles.str
+        
         background_clip = background_clip.filter(
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
-            force_style=get_subtitles_style(desiredStyle=2 if text_only else 1),
+            force_style=get_subtitles_style(
+                desiredStyle=mode_settings["subtitles_style"]
+            ),
         )
+    emit("stage", {"stage": "Rendering final video"}, broadcast=True)
     cmd = (
         ffmpeg.output(
             background_clip,
