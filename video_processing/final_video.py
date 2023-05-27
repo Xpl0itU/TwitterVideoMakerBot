@@ -109,7 +109,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         mode_settings["show_captions"] and mode_settings["subtitles_style"] != 0
     )
 
-    links = list(filter(lambda x: x != "", links))
+    links = [link for link in links if link != ""]
     if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
             "stage",
@@ -120,12 +120,12 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         )
         return
     tweets_in_threads = flatten(
-        list(
-            map(
-                lambda x: TweetManager(int(x)).get_thread_tweets(),
-                list(map(lambda x: re.search(r"/status/(\d+)", x).group(1), links)),
-            )
-        )
+        [
+            TweetManager(
+                int(re.search(r"/status/(\d+)", link).group(1))
+            ).get_thread_tweets()
+            for link in links
+        ]
     )
     output_dir = os.path.join(
         tempfile.gettempdir(), "Fudgify", "results", f"{tweets_in_threads[0].id}"
