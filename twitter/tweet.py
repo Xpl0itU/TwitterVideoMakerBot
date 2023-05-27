@@ -59,9 +59,9 @@ class TweetManager:
             emit(
                 "stage",
                 {
-                    "stage": "Error while screenshotting tweet, please reload the page and try again"
+                    "stage": "Error while screenshotting tweet, please reload the page and try again",
+                    "done": False,
                 },
-                broadcast=True,
             )
             return False
 

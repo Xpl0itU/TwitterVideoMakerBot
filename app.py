@@ -28,7 +28,7 @@ import multiprocessing
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app, async_handlers=False)
+socketio = SocketIO(app)
 firebase = pyrebase.initialize_app(firebase_auth)
 links = list()
 is_loggedin = False

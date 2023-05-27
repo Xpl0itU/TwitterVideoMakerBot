@@ -89,8 +89,10 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     if mode_settings is None:
         emit(
             "stage",
-            {"stage": f"Error: Invalid mode '{mode}', please choose a valid mode"},
-            broadcast=True,
+            {
+                "stage": f"Error: Invalid mode '{mode}', please choose a valid mode",
+                "done": False,
+            },
         )
         return
 
@@ -111,8 +113,10 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     if len(links) == 0 or links is None or links == [] or links == [""]:
         emit(
             "stage",
-            {"stage": "Error: No links provided, please reload the page and try again"},
-            broadcast=True,
+            {
+                "stage": "Error: No links provided, please reload the page and try again",
+                "done": False,
+            },
         )
         return
     tweets_in_threads = flatten(
@@ -134,8 +138,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     audio_lengths = list()
     emit(
         "stage",
-        {"stage": "Screenshotting tweets and generating the voice"},
-        broadcast=True,
+        {"stage": "Screenshotting tweets and generating the voice", "done": False},
     )
 
     if show_any_tweet_screenshots:
@@ -162,7 +165,6 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                 emit(
                     "progress",
                     {"progress": math.floor(i / len(tweets_in_threads) * 100)},
-                    broadcast=True,
                 )
 
             browser.close()
@@ -176,10 +178,12 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             emit(
                 "progress",
                 {"progress": math.floor(i / len(tweets_in_threads) * 100)},
-                broadcast=True,
             )
 
-    emit("stage", {"stage": "Creating clips for each tweet"}, broadcast=True)
+    emit(
+        "stage",
+        {"stage": "Creating clips for each tweet", "done": False},
+    )
     screenshot_width = int((1080 * 45) // 100)
     for i in range(len(tweets_in_threads)):
         if not text_only:
@@ -205,7 +209,6 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         emit(
             "progress",
             {"progress": math.floor(i / len(tweets_in_threads) * 100)},
-            broadcast=True,
         )
 
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
@@ -252,7 +255,10 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     # Append subtitles for each audio
     if add_subtitles or text_only:
         # Generate subtitles timestamp for each audio
-        emit("stage", {"stage": "Generating Subtitles"}, broadcast=True)
+        emit(
+            "stage",
+            {"stage": "Generating Subtitles", "done": False},
+        )
         transcribe_audio(
             f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
         )  # Export the subtitle for subtitles.str
@@ -264,7 +270,10 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                 desiredStyle=mode_settings["subtitles_style"]
             ),
         )
-    emit("stage", {"stage": "Rendering final video"}, broadcast=True)
+    emit(
+        "stage",
+        {"stage": "Rendering final video", "done": False},
+    )
     cmd = (
         ffmpeg.output(
             background_clip,
@@ -286,14 +295,17 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     for progress in ffmpeg_progress.run_command_with_progress(
         duration_override=video_duration
     ):
-        emit("progress", {"progress": progress}, broadcast=True)
+        emit(
+            "progress",
+            {"progress": progress},
+        )
 
-    emit("progress", {"progress": 100}, broadcast=True)
-
-    emit("stage", {"stage": "Cleaning up temporary files"}, broadcast=True)
     shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
-    emit("stage", {"stage": "Video generated, ready to download"}, broadcast=True)
-    emit("done", {"done": None}, broadcast=True)
+    emit(
+        "stage",
+        {"stage": "Video generated, ready to download", "done": True},
+        ignore_queue=True,
+    )
 
 
 def get_exported_video_path(link: str) -> str:

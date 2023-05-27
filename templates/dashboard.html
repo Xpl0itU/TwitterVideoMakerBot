@@ -97,15 +97,13 @@
       socket.emit('submit', { inputs: inputs, mode: modesDropdown.value });
     });
 
-    socket.on('done', function (data) {
-      // Show the export button
-      resultsContainer.style.display = 'block';
-      submitButton.disabled = false;
-    });
-
     socket.on('stage', function (data) {
       // Update the stage
       stage.innerText = data.stage;
+      if (data.done) {
+        resultsContainer.style.display = 'block';
+        submitButton.disabled = false;
+      }
     });
 
     socket.on('progress', function (data) {

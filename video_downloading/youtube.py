@@ -22,7 +22,6 @@ def report_progress(d) -> None:
             emit(
                 "progress",
                 {"progress": math.floor(downloaded_bytes / total_bytes * 100)},
-                broadcast=True,
             )
 
 
@@ -37,7 +36,10 @@ def download_background() -> str:
     if os.path.exists(f"{get_user_data_dir()}/assets/backgrounds/{filename}"):
         return filename
 
-    emit("stage", {"stage": "Downloading the background video"}, broadcast=True)
+    emit(
+        "stage",
+        {"stage": "Downloading the background video", "done": False},
+    )
 
     ydl_opts = {
         "format": "bestvideo[height<=1080][ext=mp4]",
