@@ -1,3 +1,4 @@
+import os
 from tweety.bot import Twitter, Tweet
 import preprocessing_text_ben as pp
 
@@ -93,5 +94,5 @@ class TweetManager:
         tweet = app.tweet_detail(f"{self.id}")
         tweet_text = self.cleanup_tweet_text(tweet.text)  # type: ignore
         engine = StreamlabsPolly()
-        engine.run(tweet_text, f"{output}/{self.id}.mp3")
+        engine.run(tweet_text, os.path.join(output, f"{self.id}.mp3"))
         return tweet_text

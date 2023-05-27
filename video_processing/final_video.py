@@ -127,8 +127,12 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             )
         )
     )
-    output_dir = f"{tempfile.gettempdir()}/Fudgify/results/{tweets_in_threads[0].id}"
-    temp_dir = f"{tempfile.gettempdir()}/Fudgify/temp/{tweets_in_threads[0].id}"
+    output_dir = os.path.join(
+        tempfile.gettempdir(), "Fudgify", "results", f"{tweets_in_threads[0].id}"
+    )
+    temp_dir = os.path.join(
+        tempfile.gettempdir(), "Fudgify", "temp", f"{tweets_in_threads[0].id}"
+    )
 
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
@@ -152,7 +156,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                     if (
                         tweet.screenshot_tweet(
                             page,
-                            f"{temp_dir}/{tweets_in_threads[i].id}.png",
+                            os.path.join(temp_dir, f"{tweets_in_threads[i].id}.png"),
                         )
                         is False
                     ):
@@ -186,19 +190,17 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             if i == 0 or not only_first_tweet:
                 video_clips.append(
                     ffmpeg.input(
-                        f"{temp_dir}/{tweets_in_threads[i].id}.png",
+                        os.path.join(temp_dir, f"{tweets_in_threads[i].id}.png")
                     ).filter("scale", screenshot_width, -1)
                 )
         audio_clips.append(
-            ffmpeg.input(
-                f"{temp_dir}/{tweets_in_threads[i].id}.mp3",
-            )
+            ffmpeg.input(os.path.join(temp_dir, f"{tweets_in_threads[i].id}.mp3"))
         )
         audio_lengths.append(
             float(
-                ffmpeg.probe(f"{temp_dir}/{tweets_in_threads[i].id}.mp3")["format"][
-                    "duration"
-                ]
+                ffmpeg.probe(os.path.join(temp_dir, f"{tweets_in_threads[i].id}.mp3"))[
+                    "format"
+                ]["duration"]
             )
         )
         emit(
@@ -209,15 +211,15 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     audio_concat = ffmpeg.concat(*audio_clips, a=1, v=0)
     ffmpeg.output(
         audio_concat,
-        f"{temp_dir}/temp-audio-subtitles.mp3",
+        os.path.join(temp_dir, "temp-audio-subtitles.mp3"),
         **{
             "b:a": "192k",
             "threads": multiprocessing.cpu_count(),
         },  # Build full audio to get more accurate subtitles
     ).overwrite_output().run(quiet=True)
 
-    background_filename = (
-        f"{get_user_data_dir()}/assets/backgrounds/{download_background()}"
+    background_filename = os.path.join(
+        get_user_data_dir(), "assets", "backgrounds", download_background()
     )
 
     video_duration = sum(audio_lengths)
@@ -258,12 +260,15 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             {"stage": "Generating Subtitles", "done": False},
         )
         transcribe_audio(
-            f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
+            os.path.join(temp_dir, "temp-audio-subtitles.mp3"),
+            os.path.join(temp_dir, "temp-subtitles.srt"),
         )  # Export the subtitle for subtitles.str
 
         background_clip = background_clip.filter(
             "subtitles",
-            f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
+            os.path.join(
+                temp_dir, "temp-subtitles.srt"
+            ),  # Declare this filter as subtitles filter and give your path
             force_style=get_subtitles_style(
                 desired_style=mode_settings["subtitles_style"]
             ),
@@ -276,7 +281,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         ffmpeg.output(
             background_clip,
             audio_concat,
-            f"{output_dir}/Fudgify-{tweets_in_threads[0].id}.mp4",
+            os.path.join(output_dir, f"Fudgify-{tweets_in_threads[0].id}.mp4"),
             f="mp4",
             **{
                 "c:v": "h264",
@@ -298,7 +303,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             {"progress": progress},
         )
 
-    shutil.rmtree(f"{tempfile.gettempdir()}/Fudgify/temp")
+    shutil.rmtree(os.path.join(tempfile.gettempdir(), "Fudgify", "temp"))
     emit(
         "stage",
         {"stage": "Video generated, ready to download", "done": True},
@@ -313,4 +318,6 @@ def get_exported_video_path(link: str) -> str:
     :return: The path to the exported video.
     """
     id = re.search(r"/status/(\d+)", link).group(1)
-    return f"{tempfile.gettempdir()}/Fudgify/results/{id}/Fudgify-{id}.mp4"
+    return os.path.join(
+        tempfile.gettempdir(), "Fudgify", "results", id, f"Fudgify-{id}.mp4"
+    )

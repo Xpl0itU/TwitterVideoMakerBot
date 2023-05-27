@@ -32,8 +32,10 @@ def download_background() -> str:
     """
     filename, link = random.choice(list(videos.items()))
     filename += ".mp4"
-    os.makedirs(f"{get_user_data_dir()}/assets/backgrounds/", exist_ok=True)
-    if os.path.exists(f"{get_user_data_dir()}/assets/backgrounds/{filename}"):
+    backgrounds_folder_path = os.path.join(get_user_data_dir(), "assets", "backgrounds")
+    os.makedirs(backgrounds_folder_path, exist_ok=True)
+    background_path = os.path.join(backgrounds_folder_path, filename)
+    if os.path.exists(background_path):
         return filename
 
     emit(
@@ -43,7 +45,7 @@ def download_background() -> str:
 
     ydl_opts = {
         "format": "bestvideo[height<=1080][ext=mp4]",
-        "outtmpl": f"{get_user_data_dir()}/assets/backgrounds/{filename}",
+        "outtmpl": background_path,
         "retries": 10,
         "progress_hooks": [report_progress],
     }
