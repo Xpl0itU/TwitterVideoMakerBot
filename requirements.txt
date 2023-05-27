@@ -12,9 +12,9 @@ pyinstaller==5.11.0
 lxml==4.9.2
 Pyrebase4==4.7.0
 PySide6==6.5.1
-playwright==1.33.0
+playwright==1.34.0
 requests-toolbelt==0.10.1 
 requests==2.29.0
 simple-websocket==0.10.0
 faster-whisper==0.6.0
-urllib3
+urllib3==1.26.16
