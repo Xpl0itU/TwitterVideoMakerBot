@@ -20,8 +20,8 @@ from flask_socketio import SocketIO
 from video_processing.final_video import generate_video, get_exported_video_path
 from firebase_info import firebase_auth
 from window import MainWindow
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import QThread
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QThread
 
 from engineio.async_drivers import threading
 import multiprocessing
@@ -105,3 +105,4 @@ if __name__ == "__main__":
     w = MainWindow()
     w.show()
     app_qt.exec()
+    flask_thread.terminate()

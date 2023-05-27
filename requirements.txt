@@ -11,7 +11,7 @@ yt-dlp==2023.3.4
 pyinstaller==5.11.0
 lxml==4.9.2
 Pyrebase4==4.7.0
-PyQt6==6.5.0
+PySide6==6.5.1
 playwright==1.33.0
 requests-toolbelt==0.10.1 
 requests==2.29.0
