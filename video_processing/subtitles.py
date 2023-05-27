@@ -4,15 +4,23 @@ from datetime import timedelta, datetime
 
 
 def get_subtitles_style(
-    pColor: str = "&HFFFFFF&",
-    fontsize: float = 18,
+    primary_color: str = "&HFFFFFF&",
+    font_size: float = 18,
     bold: bool = True,
-    desiredStyle: int = 1,
+    desired_style: int = 1,
 ):
+    """
+    Get subtitles style.
+    :param primary_color: Primary color.
+    :param font_size: Font size.
+    :param bold: Bold text.
+    :param desired_style: Desired style.
+    :return: Subtitles style.
+    """
     style = {
         # Great format to run with screenshots
-        1: f"Fontsize={fontsize},"
-        f"PrimaryColour={pColor},"
+        1: f"Fontsize={font_size},"
+        f"PrimaryColour={primary_color},"
         f"OutlineColour=&H40000000,"
         f"Bold={bold},"
         f"Alignment=6,"
@@ -20,7 +28,7 @@ def get_subtitles_style(
         f"MarginR=0,"
         f"MarginV=200",
         # Centerd Bold Text
-        2: f"Fontsize={fontsize},"
+        2: f"Fontsize={font_size},"
         f"PrimaryColour=&HFFFFFF&,"
         f"OutlineColour=&H40000000,"
         f"Bold={bold},"
@@ -29,7 +37,7 @@ def get_subtitles_style(
         f"MarginR=0,"
         f"MarginV=0",
     }
-    return style[desiredStyle]
+    return style[desired_style]
 
 
 def generate_srt(subtitles: list) -> str:

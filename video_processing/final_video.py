@@ -65,14 +65,14 @@ def get_start_and_end_times(video_length: int, length_of_clip: int) -> Tuple[int
     :param length_of_clip: The length of the clip.
     :return: The start and end times.
     """
-    initialValue = 180
+    initial_value = 180
     # Ensures that will be a valid interval in the video
-    while int(length_of_clip) <= int(video_length + initialValue):
-        if initialValue == initialValue // 2:
+    while int(length_of_clip) <= int(video_length + initial_value):
+        if initial_value == initial_value // 2:
             raise Exception("Your background is too short for this video length")
         else:
-            initialValue //= 2  # Divides the initial value by 2 until reach 0
-    random_time = randrange(initialValue, int(length_of_clip) - int(video_length))
+            initial_value //= 2  # Divides the initial value by 2 until reach 0
+    random_time = randrange(initial_value, int(length_of_clip) - int(video_length))
     return random_time, random_time + video_length
 
 
@@ -149,14 +149,9 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                 tweet = TweetManager(tweets_in_threads[i].id)
                 tweet.get_audio_from_tweet(temp_dir)
                 if i == 0 or not only_first_tweet:
-                    # Twitter doesn't care about usernames
-                    thread_item_link = (
-                        f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
-                    )
                     if (
                         tweet.screenshot_tweet(
                             page,
-                            thread_item_link,
                             f"{temp_dir}/{tweets_in_threads[i].id}.png",
                         )
                         is False
@@ -267,7 +262,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
             force_style=get_subtitles_style(
-                desiredStyle=mode_settings["subtitles_style"]
+                desired_style=mode_settings["subtitles_style"]
             ),
         )
     emit(

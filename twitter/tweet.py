@@ -14,20 +14,18 @@ class TweetManager:
         self.id = id
 
     @staticmethod
-    def cleanup_tweet_text(x: str) -> str:
+    def cleanup_tweet_text(text: str) -> str:
         """
         Cleanup tweet text
         :return: str, cleaned up text
         """
-        x = x.lower()
-        x = pp.remove_emails(x)
-        x = pp.remove_urls(x)
-        x = pp.remove_html_tags(x)
-        x = pp.remove_accented_chars(x)
-        return x
+        text = text.lower()
+        text = pp.remove_emails(text)
+        text = pp.remove_urls(text)
+        text = pp.remove_html_tags(text)
+        return pp.remove_accented_chars(text)
 
-    @staticmethod
-    def screenshot_tweet(page: Page, url: str, output_path: str) -> bool:
+    def screenshot_tweet(self, page: Page, output_path: str) -> bool:
         """
         Takes a screenshot of a tweet.
 
@@ -37,7 +35,8 @@ class TweetManager:
         :return: True if the screenshot was successful, False otherwise
         """
         try:
-            page.goto(url)
+            # Twitter doesn't care about usernames
+            page.goto(f"https://twitter.com/jack/status/{self.id}")
             page.wait_for_load_state("networkidle")
 
             views = page.locator("//div[contains(@class, 'r-1471scf')]")
