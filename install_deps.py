@@ -22,11 +22,11 @@ def install_spacy_model(python_executable_path: str) -> None:
 def install_pip_deps(python_executable_path: str) -> None:
     subprocess.run([python_executable_path, "-m", "pip", "install", "--upgrade", "pip"])
     subprocess.run(
-        [python_executable_path, "-m", "pip", "install", "-r", "requirements.txt"]
+        [python_executable_path, "-m", "pip", "install", "-U", "-r", "requirements.txt"]
     )
 
 
-def install_playright(python_executable_path: str) -> None:
+def install_playwright(python_executable_path: str) -> None:
     subprocess.run([python_executable_path, "-m", "playwright", "install"])
     # This will allow packaging playwright's firefox with pyinstaller
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     python_executable_path = get_python_executable_path()
     install_pip_deps(python_executable_path)
     install_spacy_model(python_executable_path)
-    install_playright(python_executable_path)
+    install_playwright(python_executable_path)
 
     if platform.system() == "Windows":
         install_ffmpeg_windows()
