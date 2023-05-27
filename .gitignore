@@ -7,5 +7,6 @@ app.dist/
 build/
 dist/
 env/
+ffmpeg/
 .vscode/
 .DS_Store
