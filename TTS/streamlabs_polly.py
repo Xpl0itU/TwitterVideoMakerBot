@@ -42,10 +42,10 @@ def sleep_until(time) -> None:
         if sys.version_info[0] >= 3 and time.tzinfo:
             end = time.astimezone(timezone.utc).timestamp()
         else:
-            zoneDiff = (
+            zone_diff = (
                 pytime.time() - (datetime.now() - datetime(1970, 1, 1)).total_seconds()
             )
-            end = (time - datetime(1970, 1, 1)).total_seconds() + zoneDiff
+            end = (time - datetime(1970, 1, 1)).total_seconds() + zone_diff
 
     # Type check
     if not isinstance(end, (int, float)):
