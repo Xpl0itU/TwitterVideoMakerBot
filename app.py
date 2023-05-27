@@ -30,7 +30,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 firebase = pyrebase.initialize_app(firebase_auth)
-links = list()
+links = []
 is_loggedin = False
 # Fix for macOS crash
 os.environ["no_proxy"] = "*"

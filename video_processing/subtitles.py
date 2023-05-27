@@ -49,7 +49,7 @@ def generate_srt(subtitles: list) -> str:
     timestamp_format = datetime.strptime(
         "00:00:00,000", "%H:%M:%S,%f"
     )  # Null element of addition to keep the timestamp format
-    srt = str()
+    srt = ""
     for i, subtitle in enumerate(subtitles):
         start_time = (subtitle["start_time"] + timestamp_format).strftime(
             "%H:%M:%S,%f"
@@ -98,7 +98,7 @@ def transcribe_audio(audio_path: str, srt_path: str, word_by_word: bool = True) 
     )  # You can choose: [tinu, base, small, medium] to more accurate subtitles
     transcribe = model.transcribe(audio=audio_path, word_timestamps=True)
     segments = transcribe[0]
-    subtitles = list()
+    subtitles = []
     for segment in segments:
         # Segment Information
         words = segment.words

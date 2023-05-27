@@ -137,9 +137,9 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    video_clips = list()
-    audio_clips = list()
-    audio_lengths = list()
+    video_clips = []
+    audio_clips = []
+    audio_lengths = []
     emit(
         "stage",
         {"stage": "Screenshotting tweets and generating the voice", "done": False},
