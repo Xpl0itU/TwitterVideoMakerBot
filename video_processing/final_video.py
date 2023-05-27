@@ -240,8 +240,8 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         .filter("fifo")
     )
 
-    current_time = 0
     if not text_only:
+        current_time = 0
         for i in range(len(video_clips)):
             background_clip = ffmpeg.filter(
                 [background_clip, video_clips[i]],
