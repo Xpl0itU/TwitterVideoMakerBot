@@ -54,7 +54,7 @@ def install_ffmpeg_windows():
         os.rmdir("ffmpeg/doc")
         # Add to the path
         subprocess.run(
-            'setx /M PATH "%PATH%;%CD%\\ffmpeg"',
+            'setx PATH "%PATH%;%CD%\\ffmpeg"',
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
