@@ -143,17 +143,22 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             browser = p.firefox.launch(headless=True)
             page = browser.new_page()
             for i in range(len(tweets_in_threads)):
-                # Twitter doesn't care about usernames
-                thread_item_link = (
-                    f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
-                )
-                if (
-                    TweetManager(
-                        tweets_in_threads[i].id
-                    ).get_audio_screenshot_from_tweet(page, thread_item_link, temp_dir)
-                    is False
-                ):
-                    return
+                tweet = TweetManager(tweets_in_threads[i].id)
+                tweet.get_audio_from_tweet(temp_dir)
+                if i == 0 or not only_first_tweet:
+                    # Twitter doesn't care about usernames
+                    thread_item_link = (
+                        f"https://twitter.com/jack/status/{tweets_in_threads[i].id}"
+                    )
+                    if (
+                        tweet.screenshot_tweet(
+                            page,
+                            thread_item_link,
+                            f"{temp_dir}/{tweets_in_threads[i].id}.png",
+                        )
+                        is False
+                    ):
+                        return
                 emit(
                     "progress",
                     {"progress": math.floor(i / len(tweets_in_threads) * 100)},
@@ -251,7 +256,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         transcribe_audio(
             f"{temp_dir}/temp-audio-subtitles.mp3", f"{temp_dir}/temp-subtitles.srt"
         )  # Export the subtitle for subtitles.str
-        
+
         background_clip = background_clip.filter(
             "subtitles",
             f"{temp_dir}/temp-subtitles.srt",  # Declare this filter as subtitles filter and give your path
