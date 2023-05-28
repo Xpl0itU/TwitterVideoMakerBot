@@ -153,12 +153,11 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                 tweet = TweetManager(tweet_in_thread.id)
                 tweet.get_audio_from_tweet(temp_dir)
                 if i == 0 or not only_first_tweet:
-                    if (
+                    if not (
                         tweet.screenshot_tweet(
                             page,
                             os.path.join(temp_dir, f"{tweet_in_thread.id}.png"),
                         )
-                        is False
                     ):
                         return
                 emit(
@@ -169,7 +168,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
             browser.close()
     else:
         for i, tweet_in_thread in enumerate(tweets_in_threads):
-            if TweetManager(tweet_in_thread.id).get_audio_from_tweet(temp_dir) is False:
+            if not TweetManager(tweet_in_thread.id).get_audio_from_tweet(temp_dir):
                 return
             emit(
                 "progress",
