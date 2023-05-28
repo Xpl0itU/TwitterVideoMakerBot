@@ -3,6 +3,7 @@ import sys
 import site
 
 if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    sys.stdout = sys.stderr = open(os.devnull, 'w')
     ffmpeg_dir = os.path.join(sys._MEIPASS, "bin")
     os.environ["PATH"] = os.pathsep.join([os.environ["PATH"], ffmpeg_dir])
     site.addsitedir(ffmpeg_dir)
