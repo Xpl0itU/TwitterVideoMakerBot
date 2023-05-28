@@ -5,7 +5,7 @@ tweetben==0.0.1
 spacy==3.5.3
 pandas==2.0.1
 textblob==0.17.1
-ffmpeg-python==0.2.0
+ffmpeg-python @ git+https://github.com/Xpl0itU/ffmpeg-python@982bf87
 ffmpeg-progress-yield==0.7.4
 yt-dlp==2023.3.4
 pyinstaller==5.11.0
