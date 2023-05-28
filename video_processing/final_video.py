@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 import shutil
 import multiprocessing
@@ -21,31 +22,40 @@ from ffmpeg_progress_yield import FfmpegProgress
 
 from video_processing.subtitles import get_subtitles_style, transcribe_audio
 
+
+@dataclass(frozen=True)
+class ModeSettings:
+    show_captions: bool
+    show_first_tweet_screenshot: bool
+    show_rest_tweet_screenshots: bool
+    subtitles_style: int
+
+
 modes = {
-    "tweet screenshots + captions": {
-        "show_captions": True,
-        "show_first_tweet_screenshot": True,
-        "show_rest_tweet_screenshots": True,
-        "subtitles_style": 1,
-    },
-    "first tweet screenshot + captions": {
-        "show_captions": True,
-        "show_first_tweet_screenshot": True,
-        "show_rest_tweet_screenshots": False,
-        "subtitles_style": 1,
-    },
-    "only tweet screenshots": {
-        "show_captions": False,
-        "show_first_tweet_screenshot": True,
-        "show_rest_tweet_screenshots": True,
-        "subtitles_style": 0,
-    },
-    "only captions": {
-        "show_captions": True,
-        "show_first_tweet_screenshot": False,
-        "show_rest_tweet_screenshots": False,
-        "subtitles_style": 2,
-    },
+    "tweet screenshots + captions": ModeSettings(
+        show_captions=True,
+        show_first_tweet_screenshot=True,
+        show_rest_tweet_screenshots=True,
+        subtitles_style=1,
+    ),
+    "first tweet screenshot + captions": ModeSettings(
+        show_captions=True,
+        show_first_tweet_screenshot=True,
+        show_rest_tweet_screenshots=False,
+        subtitles_style=1,
+    ),
+    "only tweet screenshots": ModeSettings(
+        show_captions=False,
+        show_first_tweet_screenshot=True,
+        show_rest_tweet_screenshots=True,
+        subtitles_style=0,
+    ),
+    "only captions": ModeSettings(
+        show_captions=True,
+        show_first_tweet_screenshot=False,
+        show_rest_tweet_screenshots=False,
+        subtitles_style=2,
+    ),
 }
 
 
@@ -97,17 +107,15 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         return
 
     show_any_tweet_screenshots = (
-        mode_settings["show_first_tweet_screenshot"]
-        or mode_settings["show_rest_tweet_screenshots"]
+        mode_settings.show_first_tweet_screenshot
+        or mode_settings.show_rest_tweet_screenshots
     )
-    text_only = mode_settings["show_captions"] and not show_any_tweet_screenshots
+    text_only = mode_settings.show_captions and not show_any_tweet_screenshots
     only_first_tweet = (
-        mode_settings["show_first_tweet_screenshot"]
-        and not mode_settings["show_rest_tweet_screenshots"]
+        mode_settings.show_first_tweet_screenshot
+        and not mode_settings.show_rest_tweet_screenshots
     )
-    add_subtitles = (
-        mode_settings["show_captions"] and mode_settings["subtitles_style"] != 0
-    )
+    add_subtitles = mode_settings.show_captions and mode_settings.subtitles_style != 0
 
     links = [link for link in links if link != ""]
     if len(links) == 0 or links is None or links == [] or links == [""]:
@@ -266,7 +274,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
                 temp_dir, "temp-subtitles.srt"
             ),  # Declare this filter as subtitles filter and give your path
             force_style=get_subtitles_style(
-                desired_style=mode_settings["subtitles_style"]
+                desired_style=mode_settings.subtitles_style
             ),
         )
     emit(
