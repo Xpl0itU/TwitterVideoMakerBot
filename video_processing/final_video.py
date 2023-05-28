@@ -137,7 +137,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    video_clips = []
+    image_clips = []
     audio_clips = []
     audio_lengths = []
     emit(
@@ -184,7 +184,7 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         if not text_only:
             # Only First tweet mode
             if i == 0 or not only_first_tweet:
-                video_clips.append(
+                image_clips.append(
                     ffmpeg.input(
                         os.path.join(temp_dir, f"{tweet_in_thread.id}.png")
                     ).filter("scale", screenshot_width, -1)
@@ -238,9 +238,9 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
 
     if not text_only:
         current_time = 0
-        for i, (video_clip, audio_length) in enumerate(zip(video_clips, audio_lengths)):
+        for i, (image_clip, audio_length) in enumerate(zip(image_clips, audio_lengths)):
             background_clip = ffmpeg.filter(
-                [background_clip, video_clip],
+                [background_clip, image_clip],
                 "overlay",
                 enable=f"between(t,{current_time},{current_time + audio_length})",
                 x="(main_w-overlay_w)/2",
