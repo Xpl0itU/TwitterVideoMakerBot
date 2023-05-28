@@ -149,14 +149,14 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         with sync_playwright() as p:
             browser = p.firefox.launch(headless=True)
             page = browser.new_page()
-            for i in range(len(tweets_in_threads)):
-                tweet = TweetManager(tweets_in_threads[i].id)
+            for i, tweet_in_thread in enumerate(tweets_in_threads):
+                tweet = TweetManager(tweet_in_thread.id)
                 tweet.get_audio_from_tweet(temp_dir)
                 if i == 0 or not only_first_tweet:
                     if (
                         tweet.screenshot_tweet(
                             page,
-                            os.path.join(temp_dir, f"{tweets_in_threads[i].id}.png"),
+                            os.path.join(temp_dir, f"{tweet_in_thread.id}.png"),
                         )
                         is False
                     ):
@@ -168,11 +168,8 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
 
             browser.close()
     else:
-        for i in range(len(tweets_in_threads)):
-            if (
-                TweetManager(tweets_in_threads[i].id).get_audio_from_tweet(temp_dir)
-                is False
-            ):
+        for i, tweet_in_thread in enumerate(tweets_in_threads):
+            if TweetManager(tweet_in_thread.id).get_audio_from_tweet(temp_dir) is False:
                 return
             emit(
                 "progress",
@@ -184,21 +181,21 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
         {"stage": "Creating clips for each tweet", "done": False},
     )
     screenshot_width = int((1080 * 45) // 100)
-    for i in range(len(tweets_in_threads)):
+    for i, tweet_in_thread in enumerate(tweets_in_threads):
         if not text_only:
             # Only First tweet mode
             if i == 0 or not only_first_tweet:
                 video_clips.append(
                     ffmpeg.input(
-                        os.path.join(temp_dir, f"{tweets_in_threads[i].id}.png")
+                        os.path.join(temp_dir, f"{tweet_in_thread.id}.png")
                     ).filter("scale", screenshot_width, -1)
                 )
         audio_clips.append(
-            ffmpeg.input(os.path.join(temp_dir, f"{tweets_in_threads[i].id}.mp3"))
+            ffmpeg.input(os.path.join(temp_dir, f"{tweet_in_thread.id}.mp3"))
         )
         audio_lengths.append(
             float(
-                ffmpeg.probe(os.path.join(temp_dir, f"{tweets_in_threads[i].id}.mp3"))[
+                ffmpeg.probe(os.path.join(temp_dir, f"{tweet_in_thread.id}.mp3"))[
                     "format"
                 ]["duration"]
             )
@@ -242,15 +239,15 @@ def generate_video(links: list, mode: str = "tweet screenshots + captions") -> N
 
     if not text_only:
         current_time = 0
-        for i in range(len(video_clips)):
+        for i, (video_clip, audio_length) in enumerate(zip(video_clips, audio_lengths)):
             background_clip = ffmpeg.filter(
-                [background_clip, video_clips[i]],
+                [background_clip, video_clip],
                 "overlay",
-                enable=f"between(t,{current_time},{current_time + audio_lengths[i]})",
+                enable=f"between(t,{current_time},{current_time + audio_length})",
                 x="(main_w-overlay_w)/2",
                 y="(main_h-overlay_h)/2",
             )
-            current_time += audio_lengths[i]
+            current_time += audio_length
 
     # Append subtitles for each audio
     if add_subtitles or text_only:
