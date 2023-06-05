@@ -6,7 +6,7 @@ spacy==3.5.3
 pandas==2.0.2
 textblob==0.17.1
 ffmpeg-python @ git+https://github.com/Xpl0itU/ffmpeg-python@982bf87
-ffmpeg-progress-yield==0.7.4
+ffmpeg-progress-yield==0.7.8
 yt-dlp==2023.3.4
 pyinstaller==5.11.0
 lxml==4.9.2
