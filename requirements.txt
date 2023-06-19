@@ -10,7 +10,7 @@ ffmpeg-progress-yield==0.7.8
 yt-dlp==2023.3.4
 pyinstaller==5.12.0
 lxml==4.9.2
-Pyrebase4==4.7.0
+Pyrebase4==4.7.1
 PySide6==6.5.1.1
 playwright==1.35.0
 requests-toolbelt==0.10.1 
