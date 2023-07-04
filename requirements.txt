@@ -2,7 +2,7 @@ Flask==2.3.2
 Flask-SocketIO==5.3.4
 tweety-ns==0.7.1
 tweetben==0.0.1
-spacy==3.5.3
+spacy==3.5.4
 pandas==2.0.2
 textblob==0.17.1
 ffmpeg-python @ git+https://github.com/Xpl0itU/ffmpeg-python@982bf87
