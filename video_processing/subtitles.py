@@ -1,6 +1,32 @@
+from datetime import datetime, timedelta
 import multiprocessing
 import faster_whisper
-from datetime import timedelta, datetime
+
+
+STYLES = {
+    # Great format to run with screenshots
+    1: [
+        "Fontsize={font_size},",
+        "PrimaryColour={primary_color},",
+        "OutlineColour=&H40000000,",
+        "Bold={bold},",
+        "Alignment=6,",
+        "MarginL=0,",
+        "MarginR=0,",
+        "MarginV=200",
+    ],
+    # Centerd Bold Text
+    2: [
+        "Fontsize={font_size},",
+        "PrimaryColour=&HFFFFFF&,",
+        "OutlineColour=&H40000000,",
+        "Bold={bold},",
+        "Alignment=10,",
+        "MarginL=0,",
+        "MarginR=0,",
+        "MarginV=0",
+    ],
+}
 
 
 def get_subtitles_style(
@@ -17,27 +43,9 @@ def get_subtitles_style(
     :param desired_style: Desired style.
     :return: Subtitles style.
     """
-    style = {
-        # Great format to run with screenshots
-        1: f"Fontsize={font_size},"
-        f"PrimaryColour={primary_color},"
-        f"OutlineColour=&H40000000,"
-        f"Bold={bold},"
-        f"Alignment=6,"
-        f"MarginL=0,"
-        f"MarginR=0,"
-        f"MarginV=200",
-        # Centerd Bold Text
-        2: f"Fontsize={font_size},"
-        f"PrimaryColour=&HFFFFFF&,"
-        f"OutlineColour=&H40000000,"
-        f"Bold={bold},"
-        f"Alignment=10,"
-        f"MarginL=0,"
-        f"MarginR=0,"
-        f"MarginV=0",
-    }
-    return style[desired_style]
+    return "".join(STYLES[desired_style]).format(
+        primary_color=primary_color, font_size=font_size, bold=bold
+    )
 
 
 def generate_srt(subtitles: list) -> str:
@@ -49,7 +57,7 @@ def generate_srt(subtitles: list) -> str:
     timestamp_format = datetime.strptime(
         "00:00:00,000", "%H:%M:%S,%f"
     )  # Null element of addition to keep the timestamp format
-    srt = ""
+    srt = []
     for i, subtitle in enumerate(subtitles):
         start_time = (subtitle["start_time"] + timestamp_format).strftime(
             "%H:%M:%S,%f"
@@ -59,11 +67,11 @@ def generate_srt(subtitles: list) -> str:
         ]
         words = subtitle["words"]
 
-        srt += f"{i+1}\n"
-        srt += f"{start_time} --> {end_time}\n"
-        srt += " ".join(words) + "\n\n"
+        srt.append(f"{i+1}")
+        srt.append(f"{start_time} --> {end_time}")
+        srt.append(" ".join(words) + "\n")
 
-    return srt
+    return "\n".join(srt)
 
 
 def append_segment_to_subtitles(subtitles: list, segment: tuple) -> list:

@@ -86,7 +86,7 @@ class StreamlabsPolly:
     def __init__(self):
         self.url = "https://streamlabs.com/polly/speak"
         self.max_chars = 550
-        self.voices = voices
+        self.voices = tuple(voices)
 
     def run(self, text, filepath, voice: str = "Matthew"):
         body = {"voice": voice, "text": text, "service": "polly"}
@@ -106,5 +106,5 @@ class StreamlabsPolly:
                 except (KeyError, JSONDecodeError):
                     print("Error occurred calling Streamlabs Polly")
 
-    def randomvoice(self):
+    def get_random_voice(self):
         return random.choice(self.voices)

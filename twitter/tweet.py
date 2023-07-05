@@ -1,3 +1,4 @@
+from typing import Optional
 import os
 from tweety.bot import Twitter, Tweet
 import preprocessing_text_ben as pp
@@ -7,12 +8,13 @@ from TTS.streamlabs_polly import StreamlabsPolly
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 from flask_socketio import emit
 
-app = Twitter()
+twitter_app = Twitter()
 
 
 class TweetManager:
-    def __init__(self, id: int):
+    def __init__(self, id: int, app: Optional[Twitter] = twitter_app):
         self.id = id
+        self.app = app
 
     @staticmethod
     def cleanup_tweet_text(text: str) -> str:
@@ -70,14 +72,14 @@ class TweetManager:
         Get tweet
         :return: Tweet, tweet
         """
-        return app.tweet_detail(f"{self.id}")
+        return self.app.tweet_detail(f"{self.id}")
 
     def get_thread_tweets(self) -> list:
         """
         Get thread tweets
         :return: list, list of tweets
         """
-        tweet = app.tweet_detail(f"{self.id}")
+        tweet = self.app.tweet_detail(f"{self.id}")
         if len(tweet.threads) == 0:  # type: ignore
             return [tweet]
         thread_tweets = tweet.threads  # type: ignore
@@ -86,13 +88,13 @@ class TweetManager:
             thread_tweets.insert(0, tweet)
         return thread_tweets
 
-    def get_audio_from_tweet(self, output: str) -> str:
+    def get_audio_from_tweet(self, output: str, voice: str = "Matthew") -> str:
         """
         Get audio from tweet
         :return: str, text of the tweet
         """
-        tweet = app.tweet_detail(f"{self.id}")
+        tweet = self.app.tweet_detail(f"{self.id}")
         tweet_text = self.cleanup_tweet_text(tweet.text)  # type: ignore
         engine = StreamlabsPolly()
-        engine.run(tweet_text, os.path.join(output, f"{self.id}.mp3"))
+        engine.run(tweet_text, os.path.join(output, f"{self.id}.mp3"), voice)
         return tweet_text
