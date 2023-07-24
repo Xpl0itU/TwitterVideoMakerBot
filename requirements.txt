@@ -16,5 +16,5 @@ playwright==1.36.0
 requests-toolbelt==0.10.1 
 requests==2.31.0
 simple-websocket==0.10.1
-faster-whisper==0.6.0
+faster-whisper==0.7.1
 urllib3==1.26.16
