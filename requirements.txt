@@ -1,6 +1,6 @@
 Flask==2.3.2
 Flask-SocketIO==5.3.4
-tweety-ns==0.8
+tweety-ns==0.9
 tweetben==0.0.1
 spacy==3.6.0
 pandas==2.0.3
