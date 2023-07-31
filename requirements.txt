@@ -1,5 +1,5 @@
 Flask==2.3.2
-Flask-SocketIO==5.3.4
+Flask-SocketIO==5.3.5
 tweety-ns==0.9.6
 tweetben==0.0.1
 spacy==3.6.0
