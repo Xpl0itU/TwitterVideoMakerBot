@@ -1,6 +1,7 @@
 from typing import Optional
 import os
-from tweety.bot import Twitter, Tweet
+from tweety import Twitter
+from tweety.types import Tweet
 import preprocessing_text_ben as pp
 
 from TTS.streamlabs_polly import StreamlabsPolly
@@ -8,7 +9,7 @@ from TTS.streamlabs_polly import StreamlabsPolly
 from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 from flask_socketio import emit
 
-twitter_app = Twitter()
+twitter_app = Twitter("session")
 
 
 class TweetManager:
