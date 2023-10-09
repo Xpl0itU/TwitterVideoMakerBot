@@ -17,4 +17,4 @@ requests-toolbelt==0.10.1
 requests==2.29.0
 simple-websocket==0.10.1
 faster-whisper==0.7.1
-urllib3==1.26.15
+urllib3==2.0.6
