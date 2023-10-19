@@ -40,6 +40,7 @@ def login():
     if is_loggedin:
         return redirect("/dashboard")
     if request.method == "POST":
+        is_loggedin = True
         return redirect("/dashboard")
         """
         email = request.form["email"]
