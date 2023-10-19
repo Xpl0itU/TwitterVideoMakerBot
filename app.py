@@ -8,7 +8,6 @@ if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
     os.environ["PATH"] = os.pathsep.join([os.environ["PATH"], ffmpeg_dir])
     site.addsitedir(ffmpeg_dir)
 
-import pyrebase
 from flask import (
     Flask,
     render_template,
@@ -19,7 +18,6 @@ from flask import (
 )
 from flask_socketio import SocketIO
 from video_processing.final_video import generate_video, get_exported_video_path
-from firebase_info import firebase_auth
 from window import MainWindow
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QThread
@@ -30,7 +28,6 @@ import multiprocessing
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
-firebase = pyrebase.initialize_app(firebase_auth)
 links = []
 is_loggedin = False
 # Fix for macOS crash
@@ -43,6 +40,8 @@ def login():
     if is_loggedin:
         return redirect("/dashboard")
     if request.method == "POST":
+        return redirect("/dashboard")
+        """
         email = request.form["email"]
         password = request.form["password"]
         try:
@@ -58,6 +57,7 @@ def login():
         except:
             # If the password is invalid, render the login page with a message
             return render_template("login.html", message="Invalid email or password")
+        """
     return render_template("login.html")
 
 
