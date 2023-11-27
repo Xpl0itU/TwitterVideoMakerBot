@@ -11,6 +11,6 @@ yt-dlp==2023.10.13
 pyinstaller==6.1.0
 lxml==4.9.3
 PySide6==6.6.0
-playwright==1.39.0
+playwright==1.40.0
 simple-websocket==1.0.0
 faster-whisper==0.9.0
