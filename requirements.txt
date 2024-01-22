@@ -3,7 +3,7 @@ Flask-SocketIO==5.3.6
 tweety-ns @ git+https://github.com/mahrtayyab/tweety@3d2c141
 tweetben==0.0.1
 spacy==3.7.2
-pandas==2.1.1
+pandas==2.2.0
 textblob==0.17.1
 ffmpeg-python @ git+https://github.com/Xpl0itU/ffmpeg-python@982bf87
 ffmpeg-progress-yield==0.7.8
